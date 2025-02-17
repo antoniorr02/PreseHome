@@ -1,17 +1,11 @@
 import Fastify from "fastify";
-import cors from "@fastify/cors";
-import dotenv from "dotenv";
+import { PrismaClient } from '@prisma/client';
+import routes from './routes/routes.js';
 
-dotenv.config();
-const fastify = Fastify({ logger: true });
+const prisma = new PrismaClient();
+const fastify = Fastify();
 
-fastify.register(cors, {
-  origin: "*",
-});
-
-fastify.get("/", async () => {
-  return { message: "API funcionando 🚀" };
-});
+fastify.register(routes, { prisma });
 
 const start = async () => {
   try {
