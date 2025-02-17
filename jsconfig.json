@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false
+  },
+  "include": ["**/*.js", "**/*.astro"],
+  "exclude": ["dist", "node_modules"]
+}
