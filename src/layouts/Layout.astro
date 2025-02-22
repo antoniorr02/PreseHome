@@ -1,18 +1,71 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
-</html>
+---
+---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" type="image" href="/assets/preseHome.png" />
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <title>Prese Home</title>
+	<link rel="stylesheet" href="/styles/global.css">
+    <script src="/scripts/menu.js" defer></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <header class="bg-white shadow-md p-4 flex justify-between items-center">
+        <a href="/" class="flex items-center">
+			<img src="/assets/preseHomeLogo.png" alt="Logo" class="w-1/2 h-auto"/>
+		</a>
+		<div class="flex justify-center">
+			<div class="relative">
+			  <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+			  <input 
+				type="text" 
+				class="search__input bg-white/90 border border-gray-300 rounded-full h-6 px-8 pl-10 text-left focus:outline-none focus:ring-2 focus:ring-green-400 transition-all duration-200"
+				placeholder="Search..."
+			  />
+			</div>
+		</div>
+		  
+        <div>
+            <button id="menu-toggle" class="p-2 bg-gray-200 rounded">Categorías</button>
+		</div>
+        <div>
+            <button id="login-btn" class="p-2 bg-blue-500 text-white rounded">Iniciar Sesión</button>
+        </div>
+		<div>
+			<i class="fas fa-shopping-cart ml-4 text-gray-500"></i>
+		</div>
+		  
+    </header>
 
-<style>
-	@import "../styles/global.css";
-  </style>
-  
+    <main class="container flex justify-center mx-auto p-4">
+        <slot />
+    </main>
+
+	<footer class="bg-gray-900 py-12 text-gray-300">
+        <div class="container mx-auto grid grid-cols-1 gap-8 px-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <h4 class="mb-4 font-semibold">Sobre Nosotros</h4>
+            <p class="text-sm">Calidad y diseño para tu hogar desde 1960</p>
+          </div>
+          <div>
+            <h4 class="mb-4 font-semibold">Atención al Cliente</h4>
+            <ul class="space-y-2 text-sm">
+              <li>Contacto</li>
+              <li>Envíos</li>
+              <li>Devoluciones</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="mb-4 font-semibold">Legal</h4>
+            <ul class="space-y-2 text-sm">
+              <li>Privacidad</li>
+              <li>Términos</li>
+              <li>Cookies</li>
+            </ul>
+          </div>
+        </div>
+      </footer>
+</body>
+</html>
