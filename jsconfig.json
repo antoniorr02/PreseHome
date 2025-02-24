@@ -3,6 +3,6 @@
     "allowJs": true,
     "checkJs": false
   },
-  "include": ["**/*.js", "**/*.astro"],
+  "include": ["**/*.js", "**/*.astro", "src/components/Counter.jsx"],
   "exclude": ["dist", "node_modules"]
 }
