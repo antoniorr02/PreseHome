@@ -1,0 +1,111 @@
+import { useState, useEffect } from 'react';
+
+const API_CATEGORIAS = 'http://localhost:5000/categorias';
+const API_PRODUCTOS_POR_CATEGORIA = (categoriaId) => `http://localhost:5000/categorias/${categoriaId}/productos`;
+
+export default function CategoryView() {
+  const [categorias, setCategorias] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [productos, setProductos] = useState([]);
+  const [loadingCategorias, setLoadingCategorias] = useState(true);
+  const [loadingProductos, setLoadingProductos] = useState(false);
+
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const response = await fetch(API_CATEGORIAS);
+        const data = await response.json();
+        setCategorias(data);
+        setLoadingCategorias(false);
+        if (data.length > 0) {
+          setSelectedCategory(data[0].categoria_id);
+        }
+      } catch (error) {
+        console.error('Error al obtener las categorías:', error);
+        setLoadingCategorias(false);
+      }
+    };
+
+    fetchCategorias();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCategory) {
+      const fetchProductos = async () => {
+        setLoadingProductos(true);
+        try {
+          const response = await fetch(API_PRODUCTOS_POR_CATEGORIA(selectedCategory));
+          const data = await response.json();
+          setProductos(data);
+          setLoadingProductos(false);
+        } catch (error) {
+          console.error('Error al obtener los productos:', error);
+          setLoadingProductos(false);
+        }
+      };
+
+      fetchProductos();
+    }
+  }, [selectedCategory]);
+
+  return (
+    <div className="flex">
+      <aside className="w-64 h-[calc(100vh-160px)] overflow-y-auto">
+        <h3 className="text-xl font-bold mb-4">Categorías</h3>
+        {loadingCategorias ? (
+          <p>Cargando categorías...</p>
+        ) : (
+          <ul>
+            {categorias.map((categoria) => (
+              <li key={categoria.categoria_id}>
+                <button
+                  onClick={() => setSelectedCategory(categoria.categoria_id)}
+                  className={`flex items-center justify-between w-full p-2 hover:bg-gray-200 transition-colors ${
+                    selectedCategory === categoria.categoria_id ? 'bg-gray-300 font-bold' : ''
+                  }`}
+                >
+                  <span>{categoria.nombre}</span>
+                  <img
+                    src={`/assets/categorias/${categoria.nombre.toLowerCase()}.jpg`}
+                    alt={categoria.nombre}
+                    className="w-8 h-8 object-cover rounded"
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </aside>
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {loadingProductos ? (
+          <p>Cargando productos...</p>
+        ) : productos.length > 0 ? (
+          productos.map((producto) => (
+            <div className="product-card block transition-all duration-300 filter hover:brightness-75">
+              <div key={producto.producto_id} className="border p-4 mb-4 rounded shadow text-center">
+                <a href="/">
+                  <img
+                    src={producto.imagenes.find(imagen => imagen.principal)?.url}
+                    alt={producto.nombre}
+                    className="w-full h-48 object-cover rounded mb-2"
+                  />
+                  <h3 className="text-xl font-bold">{producto.nombre}</h3>
+                  {producto.descripcion && <p className="mt-2 text-gray-600">{producto.descripcion}</p>}
+                  <p className="text-lg text-gray-600 font-semibold">{producto.precio}€</p>
+                </a>
+                <button
+                  onClick={() => handleAddToCart(producto)}
+                  className="mt-4 w-full py-2 px-4 bg-red-300 text-white rounded hover:bg-red-400 transition-colors"
+                >
+                  Añadir al carrito
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p>No hay productos para esta categoría.</p>
+        )}
+      </section>
+     </div>
+  );
+}

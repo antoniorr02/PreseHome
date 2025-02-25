@@ -46,8 +46,8 @@ POST http://localhost:5000/categorias
 Content-Type: application/json
 
 {
-  "nombre": "Protectores",
-  "descripcion": "La mejor selección de protectores para tu cama"
+  "nombre": "Edredones nórdicos",
+  "descripcion": "La mejor selección de edredones para tu cama"
 }
 
 
@@ -81,7 +81,7 @@ Content-Type: application/json
 
 
 ### Obtener detalle de un producto
-GET http://localhost:5000/productos/3
+GET http://localhost:5000/productos/1
 Content-Type: application/json
 
 
@@ -99,17 +99,16 @@ Content-Type: application/json
     { "principal": true, "url": "https://estilohogar.es/wp-content/uploads/2022/12/sabanas-burrito-puntos-gris-1-510x340.jpg" },
     { "principal": false, "url": "https://estilohogar.es/wp-content/uploads/2022/12/sabanas-burrito-puntos-gris-detalle-510x848.jpg" }
   ],
-  "categoriaIds": [2]
+  "categoriaIds": [1]
 }
 
 
 ### Actualizar un producto 
-PUT http://localhost:5000/productos/3
+PUT http://localhost:5000/productos/1
 Content-Type: application/json
 
 {
-  "stock": 100,
-  "precio": 27.99
+  "categorias": 1
 }
 
 
