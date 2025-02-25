@@ -46,8 +46,8 @@ POST http://localhost:5000/categorias
 Content-Type: application/json
 
 {
-  "nombre": "Electrónica",
-  "descripcion": "Dispositivos y gadgets"
+  "nombre": "Protectores",
+  "descripcion": "La mejor selección de protectores para tu cama"
 }
 
 

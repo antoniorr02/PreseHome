@@ -31,14 +31,18 @@ export default function Categorias() {
         ) : (
           categorias.length > 0 ? (
             categorias.map((categoria) => (
-              <div key={categoria.categoria_id} className="product-card">
+              <a 
+                key={categoria.categoria_id} 
+                href={`/categorias/${categoria.categoria_id}`} 
+                className="product-card block transition-all duration-300 filter hover:brightness-75"
+              >
                 <img 
                   src={`/assets/categorias/${categoria.nombre.toLowerCase()}.jpg`} 
                   alt={categoria.nombre} 
                   className="w-full h-48 object-cover rounded-lg shadow-lg" 
                 />
-                <h3 className="text-xl mt-4">{categoria.nombre}</h3>
-              </div>
+                <h3 className="text-xl text-center mt-4">{categoria.nombre}</h3>
+              </a>
             ))
           ) : (
             <p>No se encontraron categorías.</p>
