@@ -6,16 +6,9 @@ const Productos = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const searchInput = document.getElementById("search-input");
-    if (searchInput) {
-      searchInput.addEventListener("input", (e) => setQuery(e.target.value));
-    }
-
-    return () => {
-      if (searchInput) {
-        searchInput.removeEventListener("input", (e) => setQuery(e.target.value));
-      }
-    };
+    const params = new URLSearchParams(window.location.search);
+    const searchQuery = params.get("query") || "";
+    setQuery(searchQuery);
   }, []);
 
   useEffect(() => {
@@ -40,27 +33,34 @@ const Productos = () => {
   };
 
   return (
-    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-4">
+    <section className="min-h-screen grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-4">
       {loading ? (
         <p>Cargando productos...</p>
-      ) : (
+      ) : productos.length > 0 ? (
         productos.map((producto) => (
-          <div key={producto.producto_id} className="border p-4 mb-4 rounded shadow text-center">
-            <a href="/">
-              <img
-                src={producto.imagenes.find((imagen) => imagen.principal)?.url}
-                alt={producto.nombre}
-                className="w-full h-48 object-cover rounded mb-2"
-              />
-              <h3 className="text-xl font-bold">{producto.nombre}</h3>
-              {producto.descripcion && <p className="mt-2 text-gray-600">{producto.descripcion}</p>}
-              <p className="text-lg text-gray-600 font-semibold">{producto.precio}€</p>
-            </a>
-            <button className="mt-4 w-full py-2 px-4 bg-red-300 text-white rounded hover:bg-red-400 transition-colors">
-              Añadir al carrito
-            </button>
+          <div className="product-card block transition-all duration-300 filter hover:brightness-75">
+            <div key={producto.producto_id} className="border p-4 mb-4 rounded shadow text-center">
+              <a href="/">
+                <img
+                  src={producto.imagenes.find(imagen => imagen.principal)?.url}
+                  alt={producto.nombre}
+                  className="w-full h-48 object-cover rounded mb-2"
+                />
+                <h3 className="text-xl font-bold">{producto.nombre}</h3>
+                {producto.descripcion && <p className="mt-2 text-gray-600">{producto.descripcion}</p>}
+                <p className="text-lg text-gray-600 font-semibold">{producto.precio}€</p>
+              </a>
+              <button
+                onClick={() => handleAddToCart(producto)}
+                className="mt-4 w-full py-2 px-4 bg-red-300 text-white rounded hover:bg-red-400 transition-colors"
+              >
+                Añadir al carrito
+              </button>
+            </div>
           </div>
         ))
+      ) : (
+        <p className="text-center">No se encontraron productos.</p>
       )}
     </section>
   );

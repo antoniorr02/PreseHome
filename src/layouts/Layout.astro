@@ -1,5 +1,4 @@
 ---
-import Productos from "../components/Productos";
 ---
 <!DOCTYPE html>
 <html lang="es">
@@ -25,6 +24,7 @@ import Productos from "../components/Productos";
           id="search-input"
           class="search__input w-full bg-white/90 border border-gray-300 rounded-full h-8 px-8 pl-10 text-left 
                 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+          onkeydown="if (event.key === 'Enter') { window.location.href = `/buscar?query=` + encodeURIComponent(this.value); }"
         />
     </div>
     <div class="flex items-center space-x-6">
@@ -45,7 +45,6 @@ import Productos from "../components/Productos";
     <div class="flex">
       <main class="flex-1 justify-center mx-auto p-4">
           <img id="background" src="/assets/background.svg" alt="" fetchpriority="high" />
-          <Productos client:load />
           <slot />
       </main>
     </div>
