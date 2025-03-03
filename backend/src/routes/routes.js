@@ -156,11 +156,25 @@ export default async function (fastify, options) {
   })
 
   fastify.get('/productos', async (request, reply) => {
-    const productos = await prisma.producto.findMany({
-      include: { imagenes: true, categorias: { include: { categoria: true } } },
-    })
-    return reply.send(productos)
-  })
+    const { search } = request.query;
+
+    try {
+        const productos = await prisma.producto.findMany({
+            where: search ? {
+                nombre: {
+                    startsWith: search.trim(),
+                    mode: 'insensitive',
+                }
+            } : {},
+            orderBy: { nombre: 'asc' }
+        });
+        
+        reply.send(productos);
+    } catch (error) {
+        console.error(error);
+        reply.status(500).send({ error: 'Error en la base de datos' });
+    }
+  });  
 
   fastify.get('/productos/:id', async (request, reply) => {
     const { id } = request.params

@@ -8,7 +8,7 @@ const fastify = Fastify();
 console.log('Fastify instance created.');
 
 fastify.register(fastifyCors, {
-  origin: '*',
+  origin: 'http://localhost:3000',
 });
 console.log('CORS configured.');
 
