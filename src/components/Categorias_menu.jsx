@@ -19,8 +19,12 @@ export default function CategoryView() {
         const data = await response.json();
         setCategorias(data);
         setLoadingCategorias(false);
-        if (data.length > 0) {
-          setSelectedCategory(data[0].categoria_id);
+
+        const categoryIdFromLocalStorage = localStorage.getItem('selectedCategory');
+        if (categoryIdFromLocalStorage) {
+          setSelectedCategory(Number(categoryIdFromLocalStorage));
+        } else {
+          setSelectedCategory(1);
         }
       } catch (error) {
         console.error('Error al obtener las categorías:', error);

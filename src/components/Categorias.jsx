@@ -22,6 +22,11 @@ export default function Categorias() {
     fetchCategorias();
   }, []);
 
+  const handleCategoryClick = (categoriaId) => {
+    localStorage.setItem('selectedCategory', categoriaId);
+    window.location.href = '/categorias';
+  };
+
   return (
     <div className="seasonal-products">
       <h2 className="text-center text-3xl font-bold my-8">Nuestras categorías</h2>
@@ -31,10 +36,10 @@ export default function Categorias() {
         ) : (
           categorias.length > 0 ? (
             categorias.map((categoria) => (
-              <a 
+              <div
                 key={categoria.categoria_id} 
-                href={`/categorias/${categoria.categoria_id}`} 
-                className="product-card block transition-all duration-300 filter hover:brightness-75"
+                onClick={() => handleCategoryClick(categoria.categoria_id)}
+                className="product-card block transition-all duration-300 filter hover:brightness-75 cursor-pointer"
               >
                 <img 
                   src={`/assets/categorias/${categoria.nombre.toLowerCase()}.jpg`} 
@@ -42,7 +47,7 @@ export default function Categorias() {
                   className="w-full h-48 object-cover rounded-lg shadow-lg" 
                 />
                 <h3 className="text-xl text-center mt-4">{categoria.nombre}</h3>
-              </a>
+              </div>
             ))
           ) : (
             <p>No se encontraron categorías.</p>
