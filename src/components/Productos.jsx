@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import ProductModal from './ProductModal';
 
 const Productos = () => {
   const [query, setQuery] = useState("");
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -40,7 +42,11 @@ const Productos = () => {
         productos.map((producto) => (
           <div className="product-card block transition-all duration-300 filter hover:brightness-75">
             <div key={producto.producto_id} className="border p-4 mb-4 rounded shadow text-center">
-              <a href="/">
+              <div
+                key={producto.producto_id}
+                className="border p-4 rounded shadow text-center cursor-pointer hover:bg-gray-100 transition"
+                onClick={() => setSelectedProduct(producto)}
+              >
                 <img
                   src={producto.imagenes.find(imagen => imagen.principal)?.url}
                   alt={producto.nombre}
@@ -49,7 +55,7 @@ const Productos = () => {
                 <h3 className="text-xl font-bold">{producto.nombre}</h3>
                 {producto.descripcion && <p className="mt-2 text-gray-600">{producto.descripcion}</p>}
                 <p className="text-lg text-gray-600 font-semibold">{producto.precio}€</p>
-              </a>
+              </div>
               <button
                 onClick={() => handleAddToCart(producto)}
                 className="mt-4 w-full py-2 px-4 bg-red-300 text-white rounded hover:bg-red-400 transition-colors"
@@ -62,6 +68,7 @@ const Productos = () => {
       ) : (
         <p className="text-center">No se encontraron productos.</p>
       )}
+    <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
     </section>
   );
 };
