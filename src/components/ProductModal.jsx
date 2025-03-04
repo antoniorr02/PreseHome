@@ -32,56 +32,63 @@ export default function ProductModal({ product, onClose }) {
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
       onClick={handleBackgroundClick}
     >
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative" onClick={(e) => e.stopPropagation()}>
-        <button className="absolute top-2 right-2 text-xl" onClick={onClose}>✖</button>
-        <h2 className="text-2xl font-bold mb-4">{product.nombre}</h2>
+      <div
+        className="bg-white p-8 rounded-2xl shadow-xl max-w-3xl w-full relative overflow-y-auto max-h-[80vh]"
+        style={{
+          scrollbarWidth: 'none',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button className="absolute top-4 right-4 text-2xl text-gray-600 hover:text-gray-800 transition-colors" onClick={onClose}>✖</button>
+        <h2 className="text-3xl font-bold mb-6">{product.nombre}</h2>
 
-        {/* Imagen principal */}
         <img
           src={selectedImage}
           alt={product.nombre}
-          className="w-full h-64 object-cover rounded mb-4"
+          className="w-full h-auto max-h-96 object-contain rounded-lg shadow-md mb-6"
         />
 
-        {/* Galería de imágenes */}
-        <div className="flex space-x-2 mb-4">
+        <div className="flex space-x-4 mb-6 overflow-x-auto">
           {product.imagenes.map((imagen) => (
             <img
               key={imagen.url}
               src={imagen.url}
               alt={`Imagen de ${product.nombre}`}
-              className="w-20 h-20 object-cover rounded cursor-pointer hover:opacity-75"
+              className="w-32 h-32 object-contain rounded-lg cursor-pointer hover:opacity-75 transition-opacity"
               onClick={() => handleImageClick(imagen.url)}
             />
           ))}
         </div>
 
-        <p className="text-gray-700">{product.descripcion}</p>
-        <p className="text-lg font-semibold mt-2">{product.precio}€</p>
+        <p className="text-2xl font-semibold mt-4">{product.precio}€</p>
 
-        {/* Controles de cantidad */}
-        <div className="flex items-center justify-between mt-4 border rounded">
+        <div className="flex items-center justify-between mt-6 border rounded-lg">
           <button
             onClick={decrementQuantity}
-            className="px-4 py-2 bg-gray-300 rounded text-xl hover:brightness-75"
+            className="px-6 py-3 bg-gray-200 rounded-lg text-2xl hover:bg-gray-300 transition-colors"
           >
             -
           </button>
-          <span className="text-xl">{quantity}</span>
+          <span className="text-2xl">{quantity}</span>
           <button
             onClick={incrementQuantity}
-            className="px-4 py-2 bg-gray-300 rounded text-xl hover:brightness-75"
+            className="px-6 py-3 bg-gray-200 rounded-lg text-2xl hover:bg-gray-300 transition-colors"
           >
             +
           </button>
         </div>
-        
-        <button
-          onClick={() => console.log("Añadir al carrito", product, quantity)}
-          className="mt-4 w-full py-2 px-4 bg-red-300 text-white rounded hover:bg-red-400 transition-colors"
-        >
-          Añadir al carrito
-        </button>
+
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => console.log("Añadir al carrito", product, quantity)}
+            className="w-full py-3 px-6 bg-red-500 text-white rounded-lg shadow-lg hover:bg-red-600 transition-colors transform hover:scale-105"
+          >
+            Añadir al carrito
+          </button>
+        </div>
+
+        <p className='text-black font-bold text-xl mt-3'>Descripción del producto</p>
+        <p className="text-gray-700 text-lg mb-4">{product.descripcion}</p>
       </div>
     </div>
   );
