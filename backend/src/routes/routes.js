@@ -162,19 +162,22 @@ export default async function (fastify, options) {
         const productos = await prisma.producto.findMany({
             where: search ? {
                 nombre: {
-                    startsWith: search.trim(),
+                    contains: search.trim(),
                     mode: 'insensitive',
                 }
             } : {},
+            include: {
+                imagenes: true,
+            },
             orderBy: { nombre: 'asc' }
         });
-        
-        reply.send(productos);
+        return reply.send(productos);
     } catch (error) {
         console.error(error);
-        reply.status(500).send({ error: 'Error en la base de datos' });
+        return reply.status(500).send({ error: 'Error en la base de datos' });
     }
-  });  
+});
+
 
   fastify.get('/productos/:id', async (request, reply) => {
     const { id } = request.params

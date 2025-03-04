@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import ProductModal from './ProductModal';
+import ProductModal from "./ProductModal";
 
 const Productos = () => {
   const [query, setQuery] = useState("");
@@ -34,21 +34,25 @@ const Productos = () => {
     }
   };
 
+  const handleAddToCart = (producto) => {
+    console.log("Añadir al carrito:", producto);
+  };
+
   return (
     <section className="min-h-screen grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-4">
       {loading ? (
         <p>Cargando productos...</p>
       ) : productos.length > 0 ? (
         productos.map((producto) => (
-          <div className="product-card block transition-all duration-300 filter hover:brightness-75">
+          <div className="product-card">
             <div key={producto.producto_id} className="border p-4 mb-4 rounded shadow text-center">
               <div
-                key={producto.producto_id}
-                className="border p-4 rounded shadow text-center cursor-pointer hover:bg-gray-100 transition"
-                onClick={() => setSelectedProduct(producto)}
+                  key={producto.producto_id}
+                  className="border p-4 rounded shadow text-center cursor-pointer duration-300 filter hover:brightness-75"
+                  onClick={() => setSelectedProduct(producto)}
               >
                 <img
-                  src={producto.imagenes.find(imagen => imagen.principal)?.url}
+                  src={producto.imagenes?.find((imagen) => imagen.principal)?.url}
                   alt={producto.nombre}
                   className="w-full h-48 object-cover rounded mb-2"
                 />
@@ -67,7 +71,7 @@ const Productos = () => {
       ) : (
         <p className="text-center">No se encontraron productos.</p>
       )}
-    <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
+      <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
     </section>
   );
 };
