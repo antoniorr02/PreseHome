@@ -81,7 +81,7 @@ export default function ProductModal({ product, onClose }) {
         <div className="mt-6 flex justify-center">
           <button
             onClick={() => console.log("Añadir al carrito", product, quantity)}
-            className="w-full py-3 px-6 bg-red-500 text-white rounded-lg shadow-lg hover:bg-red-600 transition-colors transform hover:scale-105"
+            className="w-full py-3 px-6 bg-red-300 text-white rounded-lg shadow-lg hover:bg-red-400 transition-colors"
           >
             Añadir al carrito
           </button>

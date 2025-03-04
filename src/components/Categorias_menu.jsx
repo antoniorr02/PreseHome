@@ -87,11 +87,11 @@ export default function CategoryView() {
           <p>Cargando productos...</p>
         ) : productos.length > 0 ? (
           productos.map((producto) => (
-            <div className="product-card block transition-all duration-300 filter hover:brightness-75">
+            <div className="product-card">
               <div key={producto.producto_id} className="border p-4 mb-4 rounded shadow text-center">
                 <div
                   key={producto.producto_id}
-                  className="border p-4 rounded shadow text-center cursor-pointer hover:bg-gray-100 transition"
+                  className="border p-4 rounded shadow text-center cursor-pointer duration-300 filter hover:brightness-75"
                   onClick={() => setSelectedProduct(producto)}
                 >
                   <img
