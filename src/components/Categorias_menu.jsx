@@ -100,7 +100,6 @@ export default function CategoryView() {
                     className="w-full h-48 object-cover rounded mb-2"
                   />
                   <h3 className="text-xl font-bold">{producto.nombre}</h3>
-                  {producto.descripcion && <p className="mt-2 text-gray-600">{producto.descripcion}</p>}
                   <p className="text-lg text-gray-600 font-semibold">{producto.precio}€</p>
                 </div>
                 <button
