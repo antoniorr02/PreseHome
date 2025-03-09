@@ -26,6 +26,11 @@ export default function ProductModal({ product, onClose }) {
     setSelectedImage(url);
   };
 
+  // Calcular el precio final solo una vez antes de renderizar
+  const precioFinal = product.descuento && product.descuento > 0
+    ? product.precio - (product.precio * (product.descuento / 100))
+    : product.precio;
+
   return (
     <div
       id="modal-background"
@@ -60,7 +65,24 @@ export default function ProductModal({ product, onClose }) {
           ))}
         </div>
 
-        <p className="text-2xl font-semibold mt-4">{product.precio}€</p>
+        {/* Mostrar el precio con descuento si existe */}
+        <div className="text-lg text-gray-600 font-semibold space-x-2">
+          {product.descuento && product.descuento > 0 ? (
+            <>
+              <span className="text-2xl text-red-500 font-bold">
+                {precioFinal.toFixed(2)}€
+              </span>
+              <span className="text-sm text-red-500 font-semibold">
+                (- {product.descuento}%)
+              </span>
+              <span className="line-through text-sm text-gray-500">
+                {product.precio}€
+              </span>
+            </>
+          ) : (
+            <p className="text-2xl font-semibold">{product.precio}€</p>
+          )}
+        </div>
 
         <div className="flex items-center justify-between mt-6 border rounded-lg">
           <button

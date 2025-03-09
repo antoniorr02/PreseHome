@@ -54,6 +54,13 @@ export default function CategoryView() {
     }
   }, [selectedCategory]);
 
+  // Función para calcular el precio final con descuento
+  const calcularPrecioFinal = (producto) => {
+    return producto.descuento && producto.descuento > 0
+      ? producto.precio - (producto.precio * (producto.descuento / 100))
+      : producto.precio;
+  };
+
   return (
     <div className="flex">
       <aside className="w-64 h-[calc(100vh-160px)] overflow-y-auto">
@@ -83,39 +90,59 @@ export default function CategoryView() {
         )}
       </aside>
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mx-auto max-w-screen-xl">
-      {loadingProductos ? (
+        {loadingProductos ? (
           <p>Cargando productos...</p>
         ) : productos.length > 0 ? (
-          productos.map((producto) => (
-            <div className="product-card">
-              <div key={producto.producto_id} className="border p-4 mb-4 rounded shadow text-center">
-                <div
-                  key={producto.producto_id}
-                  className="border p-4 rounded shadow text-center cursor-pointer duration-300 filter hover:brightness-75"
-                  onClick={() => setSelectedProduct(producto)}
-                >
-                  <img
-                    src={producto.imagenes.find(imagen => imagen.principal)?.url}
-                    alt={producto.nombre}
-                    className="w-full h-48 object-cover rounded mb-2"
-                  />
-                  <h3 className="text-xl font-bold">{producto.nombre}</h3>
-                  <p className="text-lg text-gray-600 font-semibold">{producto.precio}€</p>
+          productos.map((producto) => {
+            const precioFinal = calcularPrecioFinal(producto);
+
+            return (
+              <div className="product-card" key={producto.producto_id}>
+                <div className="border p-4 mb-4 rounded shadow text-center">
+                  <div
+                    className="border p-4 rounded shadow text-center cursor-pointer duration-300 filter hover:brightness-75"
+                    onClick={() => setSelectedProduct(producto)}
+                  >
+                    <img
+                      src={producto.imagenes.find(imagen => imagen.principal)?.url}
+                      alt={producto.nombre}
+                      className="w-full h-48 object-cover rounded mb-2"
+                    />
+                    <h3 className="text-xl font-bold">{producto.nombre}</h3>
+
+                    <div className="text-lg text-gray-600 font-semibold space-x-2">
+                      {producto.descuento && producto.descuento > 0 ? (
+                        <>
+                          <span className="text-2xl text-red-500 font-bold">
+                            {precioFinal.toFixed(2)}€
+                          </span>
+                          <span className="text-sm text-red-500 font-semibold">
+                            (- {producto.descuento}%)
+                          </span>
+                          <span className="line-through text-sm text-gray-500">
+                            {producto.precio}€
+                          </span>
+                        </>
+                      ) : (
+                        <p className="text-2xl font-semibold">{producto.precio}€</p>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => console.log('Añadir al carrito', producto)}
+                    className="mt-4 w-full py-2 px-4 bg-red-300 text-white rounded hover:bg-red-400 transition-colors"
+                  >
+                    Añadir al carrito
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleAddToCart(producto)}
-                  className="mt-4 w-full py-2 px-4 bg-red-300 text-white rounded hover:bg-red-400 transition-colors"
-                >
-                  Añadir al carrito
-                </button>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <p>No hay productos para esta categoría.</p>
         )}
       </section>
       <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
-     </div>
+    </div>
   );
 }

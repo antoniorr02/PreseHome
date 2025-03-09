@@ -2,29 +2,19 @@ import { useState, useEffect } from "react";
 import ProductModal from "./ProductModal";
 
 const Productos = () => {
-  const [query, setQuery] = useState("");
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  // Llamada para obtener los productos cuando el componente se monte
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const searchQuery = params.get("query") || "";
-    setQuery(searchQuery);
-  }, []);
+    fetchProductos();
+  }, []);  // El array vacío asegura que se ejecute solo una vez al montar el componente
 
-  useEffect(() => {
-    if (query.length > 2) {
-      fetchProductos(query);
-    } else {
-      setProductos([]);
-    }
-  }, [query]);
-
-  const fetchProductos = async (searchTerm) => {
+  const fetchProductos = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/productos?search=${searchTerm}`);
+      const response = await fetch("http://localhost:5000/productos");
       const data = await response.json();
       setProductos(data);
     } catch (error) {
@@ -38,16 +28,18 @@ const Productos = () => {
     console.log("Añadir al carrito:", producto);
   };
 
+  // Filtrar productos con descuento
+  const productosConDescuento = productos.filter(
+    (producto) => producto.descuento && producto.descuento > 0
+  );
+
   return (
     <section className="min-h-screen grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-4">
       {loading ? (
         <p>Cargando productos...</p>
-      ) : productos.length > 0 ? (
-        productos.map((producto) => {
-          const precioFinal = producto.descuento && producto.descuento > 0
-            ? producto.precio - (producto.precio * (producto.descuento / 100))
-            : producto.precio;
-
+      ) : productosConDescuento.length > 0 ? (
+        productosConDescuento.map((producto) => {
+          const precioFinal = producto.precio - (producto.precio * (producto.descuento / 100));
           return (
             <div className="product-card" key={producto.producto_id}>
               <div className="border p-4 mb-4 rounded shadow text-center">
@@ -61,23 +53,16 @@ const Productos = () => {
                     className="w-full h-48 object-cover rounded mb-2"
                   />
                   <h3 className="text-xl font-bold">{producto.nombre}</h3>
-
                   <div className="text-lg text-gray-600 font-semibold space-x-2">
-                    {producto.descuento && producto.descuento > 0 ? (
-                      <>
-                        <span className="text-2xl text-red-500 font-bold">
-                          {precioFinal.toFixed(2)}€
-                        </span>
-                        <span className="text-sm text-red-500 font-semibold">
-                          (- {producto.descuento}%)
-                        </span>
-                        <span className="line-through text-sm text-gray-500">
-                          {producto.precio}€
-                        </span>
-                      </>
-                    ) : (
-                      <p className="text-2xl font-semibold">{producto.precio}€</p>
-                    )}
+                    <span className="text-2xl text-red-500 font-bold">
+                      {precioFinal.toFixed(2)}€
+                    </span>
+                    <span className="text-sm text-red-500 font-semibold">
+                      (- {producto.descuento}%)
+                    </span>
+                    <span className="line-through text-sm text-gray-500">
+                      {producto.precio}€
+                    </span>
                   </div>
                 </div>
                 <button
@@ -91,7 +76,7 @@ const Productos = () => {
           );
         })
       ) : (
-        <p className="text-center">No se encontraron productos.</p>
+        <p className="text-center">No se encontraron productos en oferta.</p>
       )}
       <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
     </section>

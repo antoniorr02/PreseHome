@@ -45,6 +45,7 @@ model Producto {
   detalles_pedido DetallePedido[]
   reseñas         Reseña[]
   itemCarrito     ItemCarrito[]
+  descuento       Decimal?   @default(0)
 }
 
 model ImagenProducto {

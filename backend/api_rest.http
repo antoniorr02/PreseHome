@@ -47,7 +47,7 @@ Content-Type: application/json
 
 {
   "nombre": "Edredones nórdicos",
-  "descripcion": "La mejor selección de edredones para tu cama"
+  "descripcion": "La mejor selección edredones para tu cama"
 }
 
 
@@ -90,11 +90,12 @@ POST http://localhost:5000/productos
 Content-Type: application/json
 
 {
-  "nombre": "Producto de Ejemplo",
+  "nombre": "Producto con descuento",
   "marca": "MarcaX",
   "descripcion": "Descripción del producto",
   "precio": 29.99,
   "stock": 50,
+  "decuento": 40,
   "imagenes": [
     { "principal": true, "url": "https://estilohogar.es/wp-content/uploads/2022/12/sabanas-burrito-puntos-gris-1-510x340.jpg" },
     { "principal": false, "url": "https://estilohogar.es/wp-content/uploads/2022/12/sabanas-burrito-puntos-gris-detalle-510x848.jpg" }
