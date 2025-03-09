@@ -1,18 +1,107 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
-</html>
+---
+---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" type="image" href="/assets/preseHome.png" />
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <title>Prese Home</title>
+	<link rel="stylesheet" href="/styles/global.css">
+    <script src="/scripts/menu.js" defer></script>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-100 text-gray-900">
+  <header class="bg-white shadow-md p-4 flex items-center justify-between">
+    <a href="/" class="flex items-center">
+        <img src="/assets/preseHomeLogo.png" alt="Logo" class="w-32 h-auto" />
+    </a>
+    <div class="flex-1 max-w-md mx-4 relative">
+        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+        <input
+          type="text"
+          placeholder="Buscar productos..."
+          id="search-input"
+          class="search__input w-full bg-white/90 border border-gray-300 rounded-full h-8 px-8 pl-10 text-left 
+                focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+          onkeydown="if (event.key === 'Enter') { window.location.href = `/buscar?query=` + encodeURIComponent(this.value); }"
+        />
+    </div>
+    <div class="flex items-center space-x-6">
+      <a href="/categorias" class="group relative p-2 bg-transparent text-gray-700 transition-colors duration-300">
+        Categorías
+        <span class="absolute left-0 bottom-0 w-full h-1 bg-red-500 transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+      </a>
+      <button id="login-btn" class="group relative p-2 bg-transparent text-gray-700 transition-colors duration-300">
+          Identifícate
+          <span class="absolute left-0 bottom-0 w-full h-1 bg-red-500 transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+      </button>
+      <button id="carrito">
+        <i class="fas fa-shopping-cart text-gray-500 text-lg"></i>
+      </button>
+    </div>
+  </header>
 
-<style>
-	@import "../styles/global.css";
-  </style>
-  
+    <div class="flex">
+      <main class="flex-1 justify-center mx-auto p-4">
+          <img id="background" src="/assets/background.svg" alt="" fetchpriority="high" />
+          <slot />
+      </main>
+    </div>
+
+    <footer class="bg-gray-900 py-12 text-gray-300 text-center sm:text-left">
+      <div class="container mx-auto grid grid-cols-1 gap-8 px-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="space-y-3">
+          <h4 class="mb-4 font-semibold">Sobre Nosotros</h4>
+          <p class="text-sm">Calidad y diseño para tu hogar desde 1979</p>
+          <a href="/historia" class="text-sm text-blue-400 hover:underline">Leer más</a>
+          <p class="text-sm">C. Doña Rosita, 8, Zaidín, 18007 Granada</p>
+        </div>
+        <div>
+          <h4 class="mb-4 font-semibold">Atención al Cliente</h4>
+          <ul class="space-y-2 text-sm">
+            <li>
+              <a href="/contacto" class="hover:text-blue-400 hover:underline">Contacto</a>
+            </li>
+            <li>
+              <a href="/envios" class="hover:text-blue-400 hover:underline">Envíos</a>
+            </li>
+            <li>
+              <a href="/devoluciones" class="hover:text-blue-400 hover:underline">Devoluciones</a>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="mb-4 font-semibold">Legal</h4>
+          <ul class="space-y-2 text-sm">
+            <li>
+              <a href="/privacidad" class="hover:text-blue-400 hover:underline">Privacidad</a>
+            </li>
+            <li>
+              <a href="/terminos" class="hover:text-blue-400 hover:underline">Términos</a>
+            </li>
+            <li>
+              <a href="/cookies" class="hover:text-blue-400 hover:underline">Cookies</a>
+            </li>
+          </ul>
+        </div>
+        <div class="space-y-5 text-center sm:text-left">
+          <h4 class="mb-4 font-semibold">Síguenos</h4>
+          <div class="flex justify-center sm:justify-start space-x-4">
+            <a href="https://wa.me/tu-numero" target="_blank" class="text-2xl hover:text-green-400">
+              <i class="fab fa-whatsapp"></i>
+            </a>
+            <a href="https://instagram.com/tu-cuenta" target="_blank" class="text-2xl hover:text-pink-400">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://facebook.com/tu-pagina" target="_blank" class="text-2xl hover:text-blue-400">
+              <i class="fab fa-facebook"></i>
+            </a>
+          </div>
+          <p class="text-sm">© Prese Home</p>
+        </div>
+      </div>
+    </footer>
+    
+</body>
+</html>

@@ -41,6 +41,7 @@ CREATE TABLE "Producto" (
     "descripcion" TEXT,
     "precio" DECIMAL(65,30) NOT NULL,
     "stock" INTEGER NOT NULL,
+    "descuento" DECIMAL(65,30) DEFAULT 0,
 
     CONSTRAINT "Producto_pkey" PRIMARY KEY ("producto_id")
 );
@@ -144,6 +145,9 @@ CREATE TABLE "ClientePedido" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Cliente_email_key" ON "Cliente"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Carrito_cliente_id_key" ON "Carrito"("cliente_id");
 
 -- AddForeignKey
 ALTER TABLE "ImagenProducto" ADD CONSTRAINT "ImagenProducto_producto_id_fkey" FOREIGN KEY ("producto_id") REFERENCES "Producto"("producto_id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -24,7 +24,7 @@ model Cliente {
   rol             Rol
   tarjetas        Tarjeta[]
   reseñas         Reseña[]
-  carritos        Carrito[]
+  carrito        Carrito?
   pedidos         ClientePedido[]
 }
 
@@ -45,6 +45,7 @@ model Producto {
   detalles_pedido DetallePedido[]
   reseñas         Reseña[]
   itemCarrito     ItemCarrito[]
+  descuento       Decimal?   @default(0)
 }
 
 model ImagenProducto {
@@ -89,7 +90,7 @@ model DetallePedido {
 
 model Carrito {
   carrito_id      Int      @id @default(autoincrement())
-  cliente_id      Int
+  cliente_id      Int      @unique
   cliente         Cliente  @relation(fields: [cliente_id], references: [cliente_id])
   items           ItemCarrito[]
 }

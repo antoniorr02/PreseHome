@@ -1,1 +1,181 @@
+### Obtener todos los clientes
 GET http://localhost:5000/clientes
+Content-Type: application/json
+
+
+### Obtener un cliente por ID
+GET http://localhost:5000/clientes/1
+Content-Type: application/json
+
+
+### Registrar un nuevo cliente
+POST http://localhost:5000/clientes
+Content-Type: application/json
+
+{
+  "nombre": "Antonio Carrito",
+  "apellidos": "Rodríguez",
+  "email": "antoniorr.rodriguez@example.com",
+  "password": "miPasswordSeguro",
+  "calle": "Calle Falsa 1M",
+  "numero_direccion": 123,
+  "piso": "12B",
+  "ciudad": "Granada",
+  "cod_postal": "18007",
+  "pais": "España",
+  "telefono": "601123456"
+}
+
+
+### Actualizar un cliente existente
+PUT http://localhost:5000/clientes/1
+Content-Type: application/json
+
+{
+  "nombre": "Juan Actualizado",
+  "telefono": "600654321"
+}
+
+
+### Eliminar un cliente
+DELETE http://localhost:5000/clientes/2
+
+
+### Crear una nueva categoría
+POST http://localhost:5000/categorias
+Content-Type: application/json
+
+{
+  "nombre": "Edredones nórdicos",
+  "descripcion": "La mejor selección edredones para tu cama"
+}
+
+
+### Obtener todas las categorías
+GET http://localhost:5000/categorias
+Content-Type: application/json
+
+
+### Obtener todos los productos de una categoría determinada
+GET http://localhost:5000/categorias/1/productos
+Content-Type: application/json
+
+
+### Actualizar una categoría
+PUT http://localhost:5000/categorias/1
+Content-Type: application/json
+
+{
+  "nombre": "Electrónica Actualizada",
+  "descripcion": "Dispositivos y gadgets modernos"
+}
+
+
+### Borrar una categoría
+DELETE http://localhost:5000/categorias/1
+
+
+### Obtener todos los productos
+GET http://localhost:5000/productos
+Content-Type: application/json
+
+
+### Obtener detalle de un producto
+GET http://localhost:5000/productos/1
+Content-Type: application/json
+
+
+### Crear un producto 
+POST http://localhost:5000/productos
+Content-Type: application/json
+
+{
+  "nombre": "Producto con descuento",
+  "marca": "MarcaX",
+  "descripcion": "Descripción del producto",
+  "precio": 29.99,
+  "stock": 50,
+  "decuento": 40,
+  "imagenes": [
+    { "principal": true, "url": "https://estilohogar.es/wp-content/uploads/2022/12/sabanas-burrito-puntos-gris-1-510x340.jpg" },
+    { "principal": false, "url": "https://estilohogar.es/wp-content/uploads/2022/12/sabanas-burrito-puntos-gris-detalle-510x848.jpg" }
+  ],
+  "categoriaIds": [1]
+}
+
+
+### Actualizar un producto 
+PUT http://localhost:5000/productos/1
+Content-Type: application/json
+
+{
+  "categorias": 1
+}
+
+
+### Eliminar un producto 
+DELETE http://localhost:5000/productos/2
+
+
+### Crear un pedido para un cliente
+POST http://localhost:5000/clientes/1/pedidos
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "producto_id": 3,
+      "cantidad": 2,
+      "precio_unitario": 29.99
+    }
+  ]
+}
+
+
+### Obtener pedidos de un cliente
+GET http://localhost:5000/clientes/1/pedidos
+Content-Type: application/json
+
+
+### Actualizar estado de un pedido 
+PUT http://localhost:5000/pedidos/2/estado
+Content-Type: application/json
+
+{
+  "estado": "enviado"
+}
+
+
+### Obtener el carrito de un cliente
+GET http://localhost:5000/clientes/5/carrito
+Content-Type: application/json
+
+
+### Añadir/actualizar un item en el carrito
+POST http://localhost:5000/clientes/5/carrito/items
+Content-Type: application/json
+
+{
+  "producto_id": 3,
+  "cantidad": 3
+}
+
+
+### Eliminar un item del carrito
+DELETE http://localhost:5000/clientes/5/carrito/items/3
+
+
+### Crear una reseña para un producto
+POST http://localhost:5000/productos/3/reseñas
+Content-Type: application/json
+
+{
+  "cliente_id": 1,
+  "calificacion": "A",
+  "comentario": "¡Excelente producto!"
+}
+
+
+### Obtener reseñas de un producto
+GET http://localhost:5000/productos/3/reseñas
+Content-Type: application/json

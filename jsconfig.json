@@ -3,6 +3,6 @@
     "allowJs": true,
     "checkJs": false
   },
-  "include": ["**/*.js", "**/*.astro"],
+  "include": ["**/*.js", "**/*.astro", "src/components/Categorias.jsx", "src/components/Categorias_menu.jsx", "src/components/ProductModal.jsx"],
   "exclude": ["dist", "node_modules"]
 }
