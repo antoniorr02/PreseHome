@@ -2,17 +2,19 @@ import Fastify from "fastify";
 import { PrismaClient } from '@prisma/client';
 import routes from './routes/routes.js';
 import fastifyCors from '@fastify/cors';
+import contactRoutes from "./routes/contact.js";
 
 const prisma = new PrismaClient();
 const fastify = Fastify();
 console.log('Fastify instance created.');
 
 fastify.register(fastifyCors, {
-  origin: 'http://localhost:4322',
+  origin: '*',
 });
 console.log('CORS configured.');
 
 fastify.register(routes, { prisma });
+fastify.register(contactRoutes);
 console.log('Routes registered.');
 
 const start = async () => {
