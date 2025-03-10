@@ -13,19 +13,19 @@ model Cliente {
   apellidos       String
   email           String    @unique
   password        String
-  calle           String
-  numero_direccion Int
-  piso            String?
-  ciudad          String
-  cod_postal      String
-  pais            String
-  telefono        String
+  calle           String?  
+  numero_direccion Int?  
+  piso            String?  
+  ciudad          String?  
+  cod_postal      String?  
+  pais            String?  
+  telefono        String?  
   fecha_registro  DateTime  @default(now())
-  rol             Rol
-  tarjetas        Tarjeta[]
-  reseñas         Reseña[]
-  carrito        Carrito?
-  pedidos         ClientePedido[]
+  rol             Rol       @default(Cliente)  
+  tarjetas        Tarjeta[] 
+  reseñas         Reseña[]  
+  carrito         Carrito?  
+  pedidos         ClientePedido[] 
 }
 
 enum Rol {

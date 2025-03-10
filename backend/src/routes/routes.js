@@ -20,34 +20,33 @@ export default async function (fastify, options) {
   })
 
   fastify.post('/clientes', async (request, reply) => {
-    const { nombre, apellidos, email, password, calle, numero_direccion, piso, ciudad, cod_postal, pais, telefono } = request.body
+    const { nombre, apellidos, email, password } = request.body;
+
     try {
-      const hashedPassword = await bcrypt.hash(password, 10)
-      const nuevoCliente = await prisma.cliente.create({
-        data: {
-          nombre,
-          apellidos,
-          email,
-          password: hashedPassword,
-          calle,
-          numero_direccion,
-          piso,
-          ciudad,
-          cod_postal,
-          pais,
-          telefono,
-          rol: 'Cliente',
-          carrito: {
-            create: {}
-          }
-        },
-        include: {
-          carrito: true
+        const existingUser = await prisma.cliente.findUnique({ where: { email } });
+        if (existingUser) {
+            return reply.status(400).send({ error: 'El correo ya está en uso' });
         }
-      })
-      return reply.status(201).send(nuevoCliente)
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const nuevoCliente = await prisma.cliente.create({
+            data: {
+                nombre,
+                apellidos,
+                email,
+                password: hashedPassword,
+                carrito: {
+                    create: {}
+                }
+            },
+            include: {
+                carrito: true
+            }
+        });
+        return reply.status(201).send(nuevoCliente);
     } catch (error) {
-      return reply.status(400).send({ error: 'Error al crear el cliente', details: error.message })
+        return reply.status(500).send({ error: 'Error al registrar el cliente', details: error.message });
     }
   })
 

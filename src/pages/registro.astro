@@ -6,9 +6,12 @@ import Layout from '../layouts/Layout.astro';
   <section class="flex flex-col items-center min-h-screen p-4">
     <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
       <h2 class="text-3xl font-semibold text-center mb-6 text-gray-700">Crea una cuenta</h2>
-      
-      <form action="/auth/register" method="POST" class="flex flex-col gap-4">
-        <input type="text" name="name" placeholder="Nombre completo" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+
+      <p id="error-message" class="text-red-500 text-sm text-center mb-4 hidden"></p>
+
+      <form id="register-form" class="flex flex-col gap-4">
+        <input type="text" name="nombre" placeholder="Nombre completo" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        <input type="text" name="apellidos" placeholder="Apellidos" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
         <input type="email" name="email" placeholder="Correo electrónico" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
         <input type="password" name="password" placeholder="Contraseña" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
         <input type="password" name="confirmPassword" placeholder="Confirmar contraseña" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
@@ -29,8 +32,10 @@ import Layout from '../layouts/Layout.astro';
       </div>
       
       <p class="text-center mt-6 text-gray-600 text-sm">
-        ¿Ya tienes cuenta? <a href="/login" class="text-blue-600 hover:underline">Inicia sesión aquí</a>
+        ¿Ya tienes cuenta? <a href="/identificate" class="text-blue-600 hover:underline">Inicia sesión aquí</a>
       </p>
     </div>
   </section>
+
+  <script src="/scripts/register.js" defer></script>
 </Layout>
