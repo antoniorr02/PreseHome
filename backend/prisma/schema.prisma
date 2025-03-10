@@ -25,8 +25,8 @@ model Cliente {
   fecha_registro  DateTime  @default(now())
   rol             Rol       @default(Cliente)  
   tarjetas        Tarjeta[] 
-  reseñas         Reseña[]  
-  carrito         Carrito?  
+  reseñas         Reseña[] 
+  Carrito         Carrito?
   pedidos         ClientePedido[] 
 }
 
@@ -93,7 +93,7 @@ model DetallePedido {
 model Carrito {
   carrito_id      Int      @id @default(autoincrement())
   cliente_id      Int      @unique
-  cliente         Cliente  @relation(fields: [cliente_id], references: [cliente_id])
+  cliente         Cliente  @relation(fields: [cliente_id], references: [cliente_id], onDelete: Cascade)
   items           ItemCarrito[]
 }
 
