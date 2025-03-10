@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
           errorMessage.textContent = result.error || "Error al registrar el usuario";
           errorMessage.classList.remove("hidden");
         } else {
-          window.location.href = "/identificate";
+          window.location.href = "/confirmacion";
         }
       } catch (error) {
         errorMessage.textContent = "Error de conexión con el servidor";

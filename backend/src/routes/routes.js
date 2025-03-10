@@ -1,4 +1,6 @@
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import {enviarCorreoConfirmacion} from './emailConfirmacion.js'; 
 
 export default async function (fastify, options) {
   const { prisma } = options
@@ -29,6 +31,7 @@ export default async function (fastify, options) {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        const token_tmp = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "24h" });
 
         const nuevoCliente = await prisma.cliente.create({
             data: {
@@ -36,6 +39,7 @@ export default async function (fastify, options) {
                 apellidos,
                 email,
                 password: hashedPassword,
+                token: token_tmp,
                 carrito: {
                     create: {}
                 }
@@ -44,11 +48,44 @@ export default async function (fastify, options) {
                 carrito: true
             }
         });
-        return reply.status(201).send(nuevoCliente);
+        await enviarCorreoConfirmacion(email, token_tmp);
+        return reply.status(201).send({ message: 'Usuario registrado correctamente. Por favor, revisa tu correo para confirmar tu cuenta.' });
     } catch (error) {
+        console.error('Error al generar el token:', error.message);
         return reply.status(500).send({ error: 'Error al registrar el cliente', details: error.message });
     }
   })
+
+  fastify.post("/confirmar", async (request, reply) => {
+    const { token } = request.body;
+
+    console.log('Token recibido:', token);
+
+    try {
+        const cliente = await prisma.cliente.findUnique({
+            where: { token },
+        });
+
+        if (!cliente) {
+            return reply.status(404).send({ success: false, error: "Usuario no encontrado" });
+        }
+
+        if (cliente.confirmado) {
+            return reply.status(400).send({ success: false, error: "La cuenta ya está confirmada" });
+        }
+
+        await prisma.cliente.update({
+            where: { token },
+            data: { confirmado: true },
+        });
+
+        return reply.send({ success: true, message: "Cuenta confirmada exitosamente" });
+    } catch (error) {
+        console.error('Error al confirmar la cuenta:', error);
+        return reply.status(400).send({ success: false, error: "No se ha podido confirmar la cuenta" });
+    }
+  })
+
 
   fastify.put('/clientes/:id', async (request, reply) => {
     const { id } = request.params

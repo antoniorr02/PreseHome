@@ -38,7 +38,7 @@ Content-Type: application/json
 
 
 ### Eliminar un cliente
-DELETE http://localhost:5000/clientes/2
+DELETE http://localhost:5000/clientes/1
 
 
 ### Crear una nueva categoría

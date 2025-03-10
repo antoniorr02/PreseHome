@@ -13,6 +13,8 @@ model Cliente {
   apellidos       String
   email           String    @unique
   password        String
+  token           String?   @unique
+  confirmado      Boolean  @default(false)
   calle           String?  
   numero_direccion Int?  
   piso            String?  

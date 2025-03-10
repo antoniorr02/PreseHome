@@ -1,0 +1,18 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <section class="flex flex-col items-center min-h-screen p-4">
+    <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
+      <h2 class="text-3xl font-semibold text-center mb-6 text-gray-700">Verifica tu correo</h2>
+      <p class="text-gray-600 text-center">
+        Hemos enviado un correo de confirmación a la dirección que proporcionaste.
+        Por favor, revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.
+      </p>
+      <p class="text-center mt-4 text-sm text-gray-500">
+        Si no recibiste el correo, revisa tu carpeta de spam o <a href="/reenviar-confirmacion" class="text-blue-600 hover:underline">haz clic aquí</a> para reenviarlo.
+      </p>
+    </div>
+  </section>
+</Layout>
