@@ -56,6 +56,34 @@ export default async function (fastify, options) {
     }
   })
 
+  fastify.post('/reenviar', async (request, reply) => {
+    const { email } = request.body;
+
+    if (!email) {
+        return reply.status(400).send({ error: 'El correo es obligatorio' });
+    }
+
+    try {
+        const cliente = await prisma.cliente.findUnique({ where: { email } });
+
+        if (!cliente) {
+            return reply.status(404).send({ error: 'Usuario no encontrado' });
+        }
+
+        if (cliente.confirmado) {
+            return reply.status(400).send({ error: 'El usuario ya está confirmado' });
+        }
+
+        await enviarCorreoConfirmacion(cliente.email, cliente.token);
+
+        return reply.send({ message: 'Correo de confirmación reenviado correctamente' });
+    } catch (error) {
+        console.error('Error al reenviar confirmación:', error);
+        return reply.status(500).send({ error: 'Error interno del servidor' });
+    }
+  })
+
+
   fastify.post("/confirmar", async (request, reply) => {
     const { token } = request.body;
 
