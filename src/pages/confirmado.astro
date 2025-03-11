@@ -28,39 +28,5 @@ import Layout from "../layouts/Layout.astro";
         </div>
     </section>
 
-    <script type="module">
-        // Esperamos a que el contenido del DOM se haya cargado antes de ejecutar el script
-        document.addEventListener('DOMContentLoaded', () => {
-            // Obtenemos el token desde los parámetros de la URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token');  // Esto obtiene el valor del parámetro 'token'
-    
-            // Obtenemos el botón de confirmar cuenta
-            const confirmarBtn = document.getElementById('confirmar-btn');
-    
-            // Función para confirmar la cuenta
-            confirmarBtn.addEventListener('click', async () => {
-                try {
-                    const response = await fetch('http://localhost:5000/confirmar', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ token }),
-                    });
-    
-                    const data = await response.json();
-    
-                    if (data.success) {
-                        window.location.href = `/identificate`;
-                    } else {
-                        alert(`No se pudo confirmar la cuenta: ${data.error || 'Error desconocido'}`);
-                    }
-                } catch (error) {
-                    console.error('Error al confirmar la cuenta:', error);
-                    alert(`Hubo un error al intentar confirmar la cuenta: ${error.message}`);
-                }
-            });
-        });
-    </script>
+    <script src="/scripts/confirm.js" defer></script>
 </Layout>
