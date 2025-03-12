@@ -4,18 +4,34 @@ import routes from "./routes/routes.js";
 import fastifyCors from "@fastify/cors";
 import contactRoutes from "./routes/contact.js";
 import cron from "node-cron";
+import fastifyCookie from "@fastify/cookie";
+import { authenticate } from "./plugins/authMiddleware.js";
+import userRoutes from "./routes/user.js";
 
 const prisma = new PrismaClient();
 const fastify = Fastify();
 console.log("Fastify instance created.");
 
+// Configura CORS
 fastify.register(fastifyCors, {
-  origin: "*",
+  origin: "http://localhost:4321", // Cambia según tu frontend
+  credentials: true,
 });
 console.log("CORS configured.");
 
+// Configura cookies
+fastify.register(fastifyCookie, {
+  secret: process.env.COOKIE_SECRET,
+  hook: "onRequest",
+});
+
+// Registra el middleware de autenticación
+fastify.decorate("authenticate", authenticate);
+
+// Registra las rutas
 fastify.register(routes, { prisma });
 fastify.register(contactRoutes);
+fastify.register(userRoutes, { prisma });
 console.log("Routes registered.");
 
 // Eliminar cuentas no verificadas después de 24 horas
@@ -36,7 +52,6 @@ cron.schedule("0 */12 * * *", async () => {
     console.error("Error eliminando cuentas no verificadas:", error);
   }
 });
-
 
 console.log("Tarea cron programada para eliminar cuentas no verificadas cada 12 horas.");
 
