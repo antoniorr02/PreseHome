@@ -12,12 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ token }),
+                credentials: "include",
             });
 
             const data = await response.json();
 
             if (data.success) {
-                window.location.href = `/identificate`;
+                window.location.href = `/`;
             } else {
                 alert(`No se pudo confirmar la cuenta: ${data.error || 'Error desconocido'}`);
             }

@@ -106,8 +106,26 @@ export default async function (fastify, options) {
             where: { token },
             data: { confirmado: true },
         });
+        
+        const jwtToken = jwt.sign({ email: cliente.email }, process.env.JWT_SECRET, { expiresIn: '2h' });
+                await prisma.cliente.update({
+            where: { email: cliente.email }, 
+            data: { token: jwtToken },
+        });
+        
+        reply.setCookie("token", jwtToken, {
+            httpOnly: true, 
+            secure: false,
+            sameSite: "Strict",
+            path: "/",
+            maxAge: 2 * 60 * 60,
+        });
 
-        return reply.send({ success: true, message: "Cuenta confirmada exitosamente" });
+        return reply.send({ 
+            success: true, 
+            message: "Cuenta confirmada exitosamente",
+            token: jwtToken
+        });
     } catch (error) {
         console.error('Error al confirmar la cuenta:', error);
         return reply.status(400).send({ success: false, error: "No se ha podido confirmar la cuenta" });
@@ -126,7 +144,7 @@ export default async function (fastify, options) {
     }
     
     if (!user.confirmado) {
-        return reply.status(401).send({ error: 'Usuario no verificado' });
+        return reply.status(401).send({ error: 'Usuario no verificpasswordado' });
     }
     
     const match = await bcrypt.compare(password, user.password);
