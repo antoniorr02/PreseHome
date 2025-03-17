@@ -1,7 +1,6 @@
----
+--- 
 import Layout from '../layouts/Layout.astro';
 ---
-
 <Layout>
   <section class="flex flex-col items-center min-h-screen p-4">
     <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
@@ -13,6 +12,7 @@ import Layout from '../layouts/Layout.astro';
         <input type="text" name="nombre" placeholder="Nombre completo" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
         <input type="text" name="apellidos" placeholder="Apellidos" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
         <input type="email" name="email" placeholder="Correo electrónico" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        
         <div class="relative">
           <input type="password" id="password" name="password" placeholder="Contraseña" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full pr-10" />
           <button type="button" id="toggle-password" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -22,6 +22,7 @@ import Layout from '../layouts/Layout.astro';
             </svg>
           </button>
         </div>
+
         <div class="relative">
           <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirmar contraseña" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full pr-10" />
           <button type="button" id="toggle-confirm-password" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -30,7 +31,9 @@ import Layout from '../layouts/Layout.astro';
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /> 
             </svg>
           </button>
-        </div>        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium p-3 rounded-full transition duration-300">Registrarse</button>
+        </div>        
+        
+        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium p-3 rounded-full transition duration-300">Registrarse</button>
       </form>
       
       <p class="text-center mt-6 text-gray-600 text-sm">
@@ -39,6 +42,5 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <script src="/scripts/register.js" defer></script>
   <script src="/scripts/verOcultarPassword.js" defer></script>
 </Layout>
