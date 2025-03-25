@@ -56,6 +56,46 @@ export default async function (fastify, options) {
     }
   })
 
+  fastify.get('/datos-cliente', async (request, reply) => {
+    try {
+      // Verificar el token en las cookies
+      const token = request.cookies.token; // El token debería estar en las cookies
+      if (!token) {
+        return reply.status(401).send({ error: 'No autorizado' });
+      }
+  
+      // Verificar y decodificar el token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const email = decoded.email;
+  
+      // Buscar el cliente en la base de datos
+      const cliente = await prisma.cliente.findUnique({
+        where: { email },
+        include: {
+          direcciones: true,
+        },
+      });
+  
+      if (!cliente) {
+        return reply.status(404).send({ error: 'Cliente no encontrado' });
+      }
+  
+      // Responder con los datos del cliente
+      return reply.send({
+        nombre: cliente.nombre,
+        apellidos: cliente.apellidos,
+        email: cliente.email,
+        dni: cliente.dni,
+        telefono: cliente.telefono,
+        direcciones: cliente.direcciones,
+      });
+    } catch (error) {
+      console.error('Error al obtener los datos del cliente:', error);
+      return reply.status(500).send({ error: 'Error al obtener los datos del cliente' });
+    }
+  });
+  
+
   fastify.post('/reenviar', async (request, reply) => {
     const { email } = request.body;
 

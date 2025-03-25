@@ -36,25 +36,45 @@ export default function UserSidebar() {
             <p className="text-gray-700 mb-6">Nombre y Apellidos</p>
 
             <nav className="space-y-4">
-              <div className="flex items-center gap-3 cursor-pointer hover:text-blue-600">
+              <a
+                href="/mi-cuenta"
+                className="flex items-center gap-3 cursor-pointer hover:text-blue-600"
+                onClick={() => setIsOpen(false)}
+              >
                 <User size={20} /> Mi cuenta
-              </div>
-              <div className="flex items-center gap-3 cursor-pointer hover:text-blue-600">
+              </a>
+              <a
+                href="/mis-pedidos"
+                className="flex items-center gap-3 cursor-pointer hover:text-blue-600"
+                onClick={() => setIsOpen(false)}
+              >
                 <Package size={20} /> Mis pedidos
-              </div>
-              <div className="flex items-center gap-3 cursor-pointer hover:text-blue-600">
+              </a>
+              <a
+                href="/contacto"
+                className="flex items-center gap-3 cursor-pointer hover:text-blue-600"
+                onClick={() => setIsOpen(false)}
+              >
                 <Mail size={20} /> Contacto
-              </div>
-              <div className="flex items-center gap-3 cursor-pointer hover:text-blue-600">
+              </a>
+              <a
+                href="/perfil"
+                className="flex items-center gap-3 cursor-pointer hover:text-blue-600"
+                onClick={() => setIsOpen(false)}
+              >
                 <Settings size={20} /> Mi perfil
-              </div>
+              </a>
             </nav>
 
             <hr className="my-4" />
 
-            <div className="flex items-center gap-3 cursor-pointer text-red-500 hover:text-red-700">
+            <a
+              href="/logout"
+              className="flex items-center gap-3 cursor-pointer text-red-500 hover:text-red-700"
+              onClick={() => setIsOpen(false)}
+            >
               <LogOut size={20} /> Cerrar sesión
-            </div>
+            </a>
           </motion.div>
         </div>
       )}
