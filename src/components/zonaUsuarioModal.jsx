@@ -17,6 +17,27 @@ export default function UserSidebar() {
     };
   }, []);
 
+  const handleLogout = async (e) => {
+    e.preventDefault(); // Evita la recarga de la página
+
+    try {
+      const response = await fetch("http://localhost:5000/logout", {
+        method: "POST",
+        credentials: "include", // Para enviar cookies con la solicitud
+      });
+
+      if (response.ok) {
+        console.log("Sesión cerrada");
+        setIsOpen(false);
+        window.location.href = "/"; // Redirigir a la página de inicio
+      } else {
+        console.error("Error al cerrar sesión");
+      }
+    } catch (error) {
+      console.error("Error en la petición de logout", error);
+    }
+  };
+
   return (
     <div>
       {isOpen && (
@@ -62,9 +83,9 @@ export default function UserSidebar() {
             <hr className="my-4" />
 
             <a
-              href="/logout"
+              href="#"
               className="flex items-center gap-3 cursor-pointer text-red-500 hover:text-red-700"
-              onClick={() => setIsOpen(false)}
+              onClick={handleLogout}
             >
               <LogOut size={20} /> Cerrar sesión
             </a>

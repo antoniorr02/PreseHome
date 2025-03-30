@@ -9,7 +9,7 @@ export default async function userRoutes(fastify, options) {
     fastify.post("/logout", async (request, reply) => {
         reply.clearCookie("token");
         reply.send({ message: "Sesión cerrada exitosamente" });
-      })    
+    })    
 
     fastify.get('/rol-sesion', async (request, reply) => {
         try {
