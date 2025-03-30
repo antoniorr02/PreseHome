@@ -37,11 +37,11 @@ export default function UserSidebar() {
 
             <nav className="space-y-4">
               <a
-                href="/mi-cuenta"
+                href="/perfil"
                 className="flex items-center gap-3 cursor-pointer hover:text-blue-600"
                 onClick={() => setIsOpen(false)}
               >
-                <User size={20} /> Mi cuenta
+                <User size={20} /> Mi perfil
               </a>
               <a
                 href="/mis-pedidos"
@@ -56,13 +56,6 @@ export default function UserSidebar() {
                 onClick={() => setIsOpen(false)}
               >
                 <Mail size={20} /> Contacto
-              </a>
-              <a
-                href="/perfil"
-                className="flex items-center gap-3 cursor-pointer hover:text-blue-600"
-                onClick={() => setIsOpen(false)}
-              >
-                <Settings size={20} /> Mi perfil
               </a>
             </nav>
 
