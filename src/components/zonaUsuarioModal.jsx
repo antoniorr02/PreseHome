@@ -54,7 +54,6 @@ export default function UserSidebar() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg font-semibold mb-4">Mi cuenta:</h2>
-            <p className="text-gray-700 mb-6">Nombre y Apellidos</p>
 
             <nav className="space-y-4">
               <a
