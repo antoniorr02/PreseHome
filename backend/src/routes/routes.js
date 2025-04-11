@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {enviarCorreoConfirmacion} from './emailConfirmacion.js'; 
+import {emailCredencialesOlvidados} from './emailCredencialesOlvidados.js'; 
 
 export default async function (fastify, options) {
   const { prisma } = options
@@ -122,6 +123,61 @@ export default async function (fastify, options) {
         return reply.status(500).send({ error: 'Error interno del servidor' });
     }
   })
+
+  fastify.post('/recuperar', async (request, reply) => {
+    const { email } = request.body;
+  
+    if (!email) {
+      return reply.status(400).send({ error: 'El correo es obligatorio' });
+    }
+  
+    try {
+      const cliente = await prisma.cliente.findUnique({ where: { email } });
+  
+      if (!cliente) {
+        return reply.status(404).send({ error: 'No existe ninguna cuenta con ese correo' });
+      }
+      
+      const token = jwt.sign({ email: cliente.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            
+      await prisma.cliente.update({
+        where: { email: cliente.email }, 
+        data: { token: token },
+      });
+      await emailCredencialesOlvidados(cliente.email, token);
+  
+      return reply.send({ message: 'Correo de recuperación enviado correctamente' });
+    } catch (error) {
+      console.error('Error al enviar correo de recuperación:', error);
+      return reply.status(500).send({ error: 'Error interno del servidor' });
+    }
+  });
+
+
+  fastify.post('/restablecer-credenciales', async (request, reply) => {
+    const { token, nuevaContrasena } = request.body;
+
+    if (!token || !nuevaContrasena) {
+        return reply.status(400).send({ error: "Token y nueva contraseña son obligatorios." });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verifica el token
+        const email = decoded.email; // Obtén el correo del token
+        const hashedPassword = await bcrypt.hash(nuevaContrasena, 10);
+
+        // Cambiar la contraseña del usuario
+        await prisma.cliente.update({
+            where: { email: email },
+            data: { password: hashedPassword },
+        });
+
+        return reply.send({ message: "Contraseña cambiada con éxito." });
+    } catch (error) {
+        return reply.status(401).send({ error: "Token inválido o expirado." });
+    }
+  });
+  
 
 
   fastify.post("/confirmar", async (request, reply) => {
