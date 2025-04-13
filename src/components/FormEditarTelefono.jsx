@@ -11,8 +11,8 @@ const FormEditarTelefono = ({ userData, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const telefonoValido = /^(6|7|8|9)\d{8}$/.test(form.telefono);
-    if (!telefonoValido) {
+    const telefono = form.telefono.trim();
+    if (telefono !== '' && !/^(6|7|8|9)\d{8}$/.test(telefono)) {
       alert('Por favor, introduce un número de teléfono válido de España.');
       return;
     }
