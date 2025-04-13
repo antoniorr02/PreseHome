@@ -42,6 +42,7 @@ const UserProfile = () => {
       } else {
         console.error('Error al actualizar datos');
         const errorData = await res.json();
+        alert(errorData.error);
   console.error('Error al actualizar datos:', errorData);
   return;
       }

@@ -280,7 +280,19 @@ export default async function (fastify, options) {
         return reply.status(404).send({ error: 'Cliente no encontrado' });
       }
   
-      // Si se incluye email en la actualización y es distinto del actual
+      if (data.dni) {
+        const letras = 'TRWAGMYFPDXBNJZSQVHLCKE';
+        if (!/^\d{8}[A-Z]$/i.test(data.dni)) {
+          return reply.status(400).send({ error: 'DNI no válido: formato incorrecto' });
+        }
+        const numero = parseInt(data.dni.substr(0, 8));
+        const letra = data.dni.charAt(8).toUpperCase();
+        const letraEsperada = letras[numero % 23];
+        if (letra !== letraEsperada) {
+          return reply.status(400).send({ error: 'DNI no válido: letra incorrecta' });
+        }
+      }
+
       if (data.email && data.email !== clienteExistente.email) {
         const token_tmp = jwt.sign({ email: data.email }, process.env.JWT_SECRET, { expiresIn: "24h" });
         data.token = token_tmp;
