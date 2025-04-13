@@ -83,6 +83,7 @@ export default async function (fastify, options) {
   
       // Responder con los datos del cliente
       return reply.send({
+        cliente_id: cliente.cliente_id,
         nombre: cliente.nombre,
         apellidos: cliente.apellidos,
         email: cliente.email,
@@ -267,19 +268,36 @@ export default async function (fastify, options) {
   })
 
   fastify.put('/clientes/:id', async (request, reply) => {
-    const { id } = request.params
-    const data = request.body
-
+    const { id } = request.params;
+    const data = request.body;
+  
     try {
+      const clienteExistente = await prisma.cliente.findUnique({
+        where: { cliente_id: parseInt(id) }
+      });
+  
+      if (!clienteExistente) {
+        return reply.status(404).send({ error: 'Cliente no encontrado' });
+      }
+  
+      // Si se incluye email en la actualización y es distinto del actual
+      if (data.email && data.email !== clienteExistente.email) {
+        const token_tmp = jwt.sign({ email: data.email }, process.env.JWT_SECRET, { expiresIn: "24h" });
+        data.token = token_tmp;
+        data.confirmado = false;
+        await enviarCorreoConfirmacion(data.email, token_tmp);
+      }
+  
       const clienteActualizado = await prisma.cliente.update({
         where: { cliente_id: parseInt(id) },
         data,
-      })
-      return reply.send(clienteActualizado)
+      });
+  
+      return reply.send(clienteActualizado);
     } catch (error) {
-      return reply.status(400).send({ error: 'Error al actualizar el cliente', details: error.message })
+      return reply.status(400).send({ error: 'Error al actualizar el cliente', details: error.message });
     }
-  })
+  });  
 
   fastify.delete('/clientes/:id', async (request, reply) => {
     const { id } = request.params

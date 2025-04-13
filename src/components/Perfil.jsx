@@ -1,10 +1,54 @@
 import React, { useState, useEffect } from 'react';
+import FormEdiccionModal from './FormEdiccionModal';
+import FormEditarDatosUsuario from './FormEditarDatosUsuario';
+import FormEditarCorreo from './FormEditarCorreo';
+import FormEditarTelefono from './FormEditarTelefono';
+import FormNuevaDireccion from './FormNuevaDireccion';
 
 const UserProfile = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [activeSection, setActiveSection] = useState('profile');
+  const [isEditarDatos, setEditarDatos] = useState(false);
+  const [isEditarCorreo, setEditarCorreo] = useState(false);
+  const [isEditarTelefono, setEditarTelefono] = useState(false);
+  const [isEditarDireccion, setEditarDireccion] = useState(false);
+
+  const handleUpdate = async (updatedData) => {
+    try {
+      const res = await fetch(`http://localhost:5000/clientes/${updatedData.cliente_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(updatedData),
+      });
+      console.log('Actualizando con datos:', updatedData);
+
+  
+      if (res.ok) {
+        const updatedUser = await res.json();
+        setUserData(updatedUser);
+        if (isEditarDatos)
+          setEditarDatos(false);
+        else if (isEditarTelefono) 
+          setEditarTelefono(false);
+        else if (isEditarDireccion) 
+          setEditarDireccion(false);
+        else if (isEditarCorreo) {
+          setEditarCorreo(false);
+          window.location.href = "/confirmacion";
+        }
+      } else {
+        console.error('Error al actualizar datos');
+        const errorData = await res.json();
+  console.error('Error al actualizar datos:', errorData);
+  return;
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -48,23 +92,32 @@ const UserProfile = () => {
               <p className="text-gray-700">{userData?.nombre || 'Cargando...'}</p>
               <p className="text-gray-700">{userData?.apellidos || 'Cargando...'}</p>
               <p className="text-gray-700">{userData?.dni}</p>
-              <a href="#" className="text-blue-600 font-semibold">Editar</a>
+              <a href="#" onClick={() => setEditarDatos(true)} className="text-blue-600 font-semibold hover:underline">Editar</a>
             </div>
 
             <div className="border border-gray-400 p-4 rounded-lg">
               <h2 className="font-semibold">Dirección de correo electrónico</h2>
               <p className="text-gray-700">{userData?.email || 'Cargando...'}</p>
-              <a href="#" className="text-blue-600 font-semibold">Cambiar la dirección de correo electrónico</a>
+              <a href="#" onClick={() => setEditarCorreo(true)} className="text-blue-600 font-semibold hover:underline">Cambiar la dirección de correo electrónico</a>
               <h2 className="font-semibold">Teléfono</h2>
               <p className="text-gray-700">{userData?.telefono}</p>
-              <a href="#" className="text-blue-600 font-semibold">Cambiar o añadir número de teléfono</a>
+              <a href="#" onClick={() => setEditarTelefono(true)} className="text-blue-600 font-semibold hover:underline">Cambiar o añadir número de teléfono</a>
             </div>
 
             <div className="border border-gray-400 p-4 rounded-lg">
               <h2 className="font-semibold">Contraseña</h2>
               <p className="text-gray-700">**********</p>
-              <a href="#" className="text-blue-600 font-semibold">Cambiar contraseña</a>
+              <a href="/recuperar" className="text-blue-600 font-semibold hover:underline">Cambiar contraseña</a>
             </div>
+            <FormEdiccionModal isOpen={isEditarDatos} onClose={() => setEditarDatos(false)}>
+              <FormEditarDatosUsuario userData={userData} onSubmit={handleUpdate} />
+            </FormEdiccionModal>
+            <FormEdiccionModal isOpen={isEditarCorreo} onClose={() => setEditarCorreo(false)}>
+              <FormEditarCorreo userData={userData} onSubmit={handleUpdate} />
+            </FormEdiccionModal>
+            <FormEdiccionModal isOpen={isEditarTelefono} onClose={() => setEditarTelefono(false)}>
+              <FormEditarTelefono userData={userData} onSubmit={handleUpdate} />
+            </FormEdiccionModal>
           </div>
         );
         case 'addresses':
@@ -85,7 +138,7 @@ const UserProfile = () => {
                         <div>{dir.pais}</div>
                       </div>
                       <button
-                        className="bg-red-500 text-white px-2 py-1 rounded"
+                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition-colors"
                         onClick={() => handleEliminarDireccion(dir.direccion_id)}
                       >
                         Eliminar
@@ -96,7 +149,10 @@ const UserProfile = () => {
                   <p className="text-gray-600">No tienes direcciones guardadas.</p>
                 )}
               </ul>
-              <a href="#" className="text-blue-600 font-semibold mt-4 inline-block">Añadir dirección</a>
+              <a href="#" onClick={() => setEditarDireccion(true)} className="text-blue-600 font-semibold mt-4 inline-block hover:underline">Añadir dirección</a>
+              <FormEdiccionModal isOpen={isEditarDireccion} onClose={() => setEditarDireccion(false)}>
+                <FormNuevaDireccion userData={userData} onSubmit={handleUpdate} />
+              </FormEdiccionModal>
               </div>
           );        
       case 'paymentMethods':
