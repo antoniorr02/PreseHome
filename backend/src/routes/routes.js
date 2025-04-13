@@ -311,6 +311,58 @@ export default async function (fastify, options) {
     }
   });  
 
+  fastify.post('/direccion/:cliente_id', async (request, reply) => {
+    const { cliente_id } = request.params;
+    const data = request.body;
+  
+    try {
+      // Verificar si el cliente existe
+      const clienteExistente = await prisma.cliente.findUnique({
+        where: { cliente_id: parseInt(cliente_id) }
+      });
+  
+      if (!clienteExistente) {
+        return reply.status(404).send({ error: 'Cliente no encontrado' });
+      }
+  
+      // Crear una nueva dirección asociada al cliente
+      const nuevaDireccion = await prisma.direccion.create({
+        data: {
+          cliente_id: parseInt(cliente_id),
+          calle: data.calle,
+          numero: data.numero,
+          piso: data.piso,
+          ciudad: data.ciudad,
+          cod_postal: data.cod_postal,
+          pais: data.pais,
+        },
+      });
+  
+      return reply.send(nuevaDireccion);
+    } catch (error) {
+      return reply.status(400).send({ error: 'Error al agregar la dirección', details: error.message });
+    }
+  });
+
+  fastify.delete('/direccion/:id', async (request, reply) => {
+    const { id } = request.params;
+  
+    try {
+      const direccionEliminada = await prisma.direccion.delete({
+        where: { direccion_id: parseInt(id) },
+      });
+  
+      return reply.send(direccionEliminada);
+    } catch (error) {
+      return reply.status(400).send({ error: 'Error al eliminar la dirección', details: error.message });
+    }
+  });
+  
+ 
+  //////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////
+
   fastify.delete('/clientes/:id', async (request, reply) => {
     const { id } = request.params
 

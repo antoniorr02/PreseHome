@@ -33,8 +33,6 @@ const UserProfile = () => {
           setEditarDatos(false);
         else if (isEditarTelefono) 
           setEditarTelefono(false);
-        else if (isEditarDireccion) 
-          setEditarDireccion(false);
         else if (isEditarCorreo) {
           setEditarCorreo(false);
           window.location.href = "/confirmacion";
@@ -45,6 +43,56 @@ const UserProfile = () => {
         alert(errorData.error);
   console.error('Error al actualizar datos:', errorData);
   return;
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const handleNuevaDireccion = async (updatedData) => {
+    try {
+      const numero = updatedData.numero ? parseInt(updatedData.numero) : null;
+      const res = await fetch(`http://localhost:5000/direccion/${updatedData.cliente_id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({...updatedData, numero}),
+      });
+      console.log('Actualizando direcciones:', updatedData);
+
+  
+      if (res.ok) {
+        const updatedAddress= await res.json();
+        setEditarDireccion(false);
+        window.location.href = "/perfil";
+      } else {
+        console.error('Error al actualizar direcciones');
+        const errorData = await res.json();
+        alert(errorData.error);
+  console.error('Error al actualizar direcciones:', errorData);
+  return;
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const handleEliminarDireccion = async (direccionId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/direccion/${direccionId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+  
+      if (res.ok) {
+        const deletedAddress = await res.json();
+        console.log('Dirección eliminada:', deletedAddress);
+        window.location.href = "/perfil";
+      } else {
+        console.error('Error al eliminar la dirección');
+        const errorData = await res.json();
+        alert(errorData.error);
+        console.error('Error al eliminar la dirección:', errorData);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -77,11 +125,7 @@ const UserProfile = () => {
   if (loading) {
     return <div>Loading...</div>;
   }
-
-  const handleEliminarDireccion = (direccionId) => {
-    // Lógica para eliminar la dirección
-    console.log(`Eliminando dirección con ID: ${direccionId}`);
-  };
+  
 
   const renderSection = () => {
     switch (activeSection) {
@@ -152,7 +196,7 @@ const UserProfile = () => {
               </ul>
               <a href="#" onClick={() => setEditarDireccion(true)} className="text-blue-600 font-semibold mt-4 inline-block hover:underline">Añadir dirección</a>
               <FormEdiccionModal isOpen={isEditarDireccion} onClose={() => setEditarDireccion(false)}>
-                <FormNuevaDireccion userData={userData} onSubmit={handleUpdate} />
+                <FormNuevaDireccion userData={userData} onSubmit={handleNuevaDireccion} />
               </FormEdiccionModal>
               </div>
           );        
