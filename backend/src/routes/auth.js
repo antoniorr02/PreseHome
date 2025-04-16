@@ -1,10 +1,15 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import rateLimit from '@fastify/rate-limit';
 import {enviarCorreoConfirmacion} from '../scripts/emailConfirmacion.js'; 
 import {emailCredencialesOlvidados} from '../scripts/emailCredencialesOlvidados.js'; 
 
 export default async function (fastify, options) {
     const { prisma } = options
+
+    await fastify.register(rateLimit, {
+        global: false
+    });
 
     fastify.post('/clientes', async (request, reply) => {
         const { nombre, apellidos, email, password } = request.body;
@@ -172,41 +177,58 @@ export default async function (fastify, options) {
           }
         })
       
-        fastify.post('/login', async (request, reply) => {
-          const { email, password } = request.body;
-      
-          const user = await prisma.cliente.findUnique({
-            where: { email },
+        fastify.route({
+            method: 'POST',
+            url: '/login',
+            config: {
+              rateLimit: {
+                max: 5, // máximo 5 intentos
+                timeWindow: '1 minute', // por minuto
+                errorResponseBuilder: () => ({
+                  statusCode: 429,
+                  error: 'Demasiados intentos. Intenta de nuevo en un minuto.',
+                })
+              }
+            },
+            handler: async (request, reply) => {
+              const { email, password } = request.body;
+        
+              const user = await prisma.cliente.findUnique({
+                where: { email },
+              });
+        
+              if (!user) {
+                return reply.status(401).send({ error: 'Correo electrónico o contraseña incorrectos' });
+              }
+        
+              if (!user.confirmado) {
+                return reply.status(401).send({ error: 'Usuario no verificado' });
+              }
+        
+              const match = await bcrypt.compare(password, user.password);
+        
+              if (!match) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                return reply.status(401).send({ error: 'Correo electrónico o contraseña incorrectos' });
+              }
+        
+              const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: '2h' });
+        
+              await prisma.cliente.update({
+                where: { email: user.email },
+                data: { token: token },
+              });
+        
+              reply.setCookie("token", token, {
+                httpOnly: true,
+                secure: false, // ARREGLAR EN PRODUCCIÓN
+                sameSite: "Strict",
+                path: "/",
+                maxAge: 2 * 60 * 60,
+              });
+        
+              reply.send({ message: 'Inicio de sesión exitoso', token });
+            }
           });
-      
-          if (!user) {
-              return reply.status(401).send({ error: 'Correo electrónico o contraseña incorrectos' });
-          }
-          
-          if (!user.confirmado) {
-              return reply.status(401).send({ error: 'Usuario no verificpasswordado' });
-          }
-          
-          const match = await bcrypt.compare(password, user.password);
-      
-          if (!match) {
-              return reply.status(401).send({ error: 'Correo electrónico o contraseña incorrectos' });
-          }
-      
-          const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: '2h' });
-          await prisma.cliente.update({
-            where: { email: user.email }, 
-            data: { token: token },
-          });
-      
-          reply.setCookie("token", token, {
-            httpOnly: true, 
-            secure: false, //process.env.IN === "production",
-            sameSite: "Strict",
-            path: "/",
-            maxAge: 2 * 60 * 60,
-          });
-      
-          reply.send({ message: 'Inicio de sesión exitoso', token });
-        })
+        
 }
