@@ -7,6 +7,8 @@ import cron from "node-cron";
 import fastifyCookie from "@fastify/cookie";
 import { authenticate } from "./plugins/authMiddleware.js";
 import userRoutes from "./routes/user.js";
+import adminRoutes from "./routes/admin.js"
+import authRoutes from "./routes/auth.js"
 
 const prisma = new PrismaClient();
 const fastify = Fastify();
@@ -32,6 +34,8 @@ fastify.decorate("authenticate", authenticate);
 fastify.register(routes, { prisma });
 fastify.register(contactRoutes);
 fastify.register(userRoutes, { prisma });
+fastify.register(adminRoutes, { prisma });
+fastify.register(authRoutes, { prisma });
 console.log("Routes registered.");
 
 // Eliminar cuentas no verificadas después de 24 horas
