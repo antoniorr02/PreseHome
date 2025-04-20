@@ -106,6 +106,10 @@ const UserProfile = () => {
           method: 'GET',
           credentials: 'include', // Mando las cookies
         });
+        if (response.status === 401) {
+          window.location.href = '/';
+          return;
+        }
         if (response.ok) {
           const data = await response.json();
           setUserData(data);

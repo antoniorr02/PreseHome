@@ -12,6 +12,7 @@
     "@astrojs/react": "^4.2.0",
     "@astrojs/tailwind": "^6.0.0",
     "framer-motion": "^12.5.0",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.482.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

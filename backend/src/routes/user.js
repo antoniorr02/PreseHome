@@ -3,10 +3,8 @@ import jwt from "jsonwebtoken";
 
 export default async function userRoutes(fastify, options) {
     const { prisma } = options
-    fastify.addHook('onRequest', authenticate);
 
-    // RUTAS A PROTEGER CON SESIÓN
-    fastify.post("/logout", async (request, reply) => {
+    fastify.post("/logout", { preHandler: [authenticate] }, async (request, reply) => {
         reply.clearCookie("token");
         reply.send({ message: "Sesión cerrada exitosamente" });
     })    
@@ -36,7 +34,7 @@ export default async function userRoutes(fastify, options) {
         }
     });
 
-    fastify.get('/datos-cliente', async (request, reply) => {
+    fastify.get('/datos-cliente', { preHandler: [authenticate] }, async (request, reply) => {
         try {
           // Verificar el token en las cookies
           const token = request.cookies.token; // El token debería estar en las cookies
@@ -76,7 +74,7 @@ export default async function userRoutes(fastify, options) {
         }
       });
 
-      fastify.put('/clientes/:id', async (request, reply) => {
+      fastify.put('/clientes/:id',  { preHandler: [authenticate] }, async (request, reply) => {
         const { id } = request.params;
         const data = request.body;
       
@@ -120,7 +118,7 @@ export default async function userRoutes(fastify, options) {
         }
       });  
     
-      fastify.post('/direccion/:cliente_id', async (request, reply) => {
+      fastify.post('/direccion/:cliente_id', { preHandler: [authenticate] }, async (request, reply) => {
         const { cliente_id } = request.params;
         const data = request.body;
       
@@ -153,7 +151,7 @@ export default async function userRoutes(fastify, options) {
         }
       });
     
-      fastify.delete('/direccion/:id', async (request, reply) => {
+      fastify.delete('/direccion/:id', { preHandler: [authenticate] }, async (request, reply) => {
         const { id } = request.params;
       
         try {
