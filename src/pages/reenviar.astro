@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <section class="flex flex-col items-center min-h-screen p-4">
+    <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
+      <h2 class="text-3xl font-semibold text-center mb-6 text-gray-700">Reenviar confirmación</h2>
+      <p class="text-gray-600 text-center">
+        Ingresa tu correo y te enviaremos nuevamente el enlace de confirmación.
+      </p>
+      <p id="error-message" class="text-red-500 text-sm text-center mb-4 hidden"></p>
+      <form id="resend-form" class="flex flex-col gap-4">
+        <input
+          type="email"
+          name="email"
+          id="email"
+          placeholder="Correo electrónico"
+          required
+          class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+        <button
+          type="submit"
+          class="bg-red-600 hover:bg-red-700 text-white font-medium p-3 rounded-full transition duration-300"
+        >
+          Reenviar Correo
+        </button>
+      </form>
+      <p id="message" class="text-center mt-4 text-sm text-gray-500"></p>
+    </div>
+  </section>
+
+  <script src="src/scripts/resend.js" defer></script>
+</Layout>

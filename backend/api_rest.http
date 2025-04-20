@@ -38,7 +38,7 @@ Content-Type: application/json
 
 
 ### Eliminar un cliente
-DELETE http://localhost:5000/clientes/2
+DELETE http://localhost:5000/clientes/1
 
 
 ### Crear una nueva categoría
@@ -90,12 +90,12 @@ POST http://localhost:5000/productos
 Content-Type: application/json
 
 {
-  "nombre": "Producto con descuento",
+  "nombre": "Producto ejemplo",
   "marca": "MarcaX",
   "descripcion": "Descripción del producto",
   "precio": 29.99,
   "stock": 50,
-  "decuento": 40,
+  "decuento": 0,
   "imagenes": [
     { "principal": true, "url": "https://estilohogar.es/wp-content/uploads/2022/12/sabanas-burrito-puntos-gris-1-510x340.jpg" },
     { "principal": false, "url": "https://estilohogar.es/wp-content/uploads/2022/12/sabanas-burrito-puntos-gris-detalle-510x848.jpg" }

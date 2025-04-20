@@ -9,24 +9,35 @@ generator client {
 
 model Cliente {
   cliente_id      Int       @id @default(autoincrement())
+  dni             String?    @unique
   nombre          String
   apellidos       String
   email           String    @unique
   password        String
-  calle           String
-  numero_direccion Int
-  piso            String?
-  ciudad          String
-  cod_postal      String
-  pais            String
-  telefono        String
+  token           String?   @unique
+  confirmado      Boolean   @default(false)
+  telefono        String?  
   fecha_registro  DateTime  @default(now())
-  rol             Rol
-  tarjetas        Tarjeta[]
-  reseñas         Reseña[]
-  carrito        Carrito?
-  pedidos         ClientePedido[]
+  rol             Rol       @default(Cliente)  
+  tarjetas        Tarjeta[] 
+  reseñas         Reseña[] 
+  carrito         Carrito?
+  pedidos         ClientePedido[] 
+  direcciones     Direccion[]
 }
+
+model Direccion {
+  direccion_id     Int      @id @default(autoincrement())
+  cliente         Cliente   @relation(fields: [cliente_id], references: [cliente_id])
+  cliente_id      Int
+  calle           String  
+  numero          Int?  
+  piso            String?  
+  ciudad          String  
+  cod_postal      String  
+  pais            String  
+}
+
 
 enum Rol {
   Cliente
@@ -91,7 +102,7 @@ model DetallePedido {
 model Carrito {
   carrito_id      Int      @id @default(autoincrement())
   cliente_id      Int      @unique
-  cliente         Cliente  @relation(fields: [cliente_id], references: [cliente_id])
+  cliente         Cliente  @relation(fields: [cliente_id], references: [cliente_id], onDelete: Cascade)
   items           ItemCarrito[]
 }
 

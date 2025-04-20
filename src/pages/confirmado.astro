@@ -1,0 +1,47 @@
+---
+import Layout from "../layouts/Layout.astro";
+import jwt from 'jsonwebtoken';
+
+const url = new URL(Astro.request.url);
+const token = url.searchParams.get('token');
+
+if (!token) {
+  return Astro.redirect('/');
+}
+
+try {
+  const decoded = jwt.verify(token, import.meta.env.JWT_SECRET);
+} catch (err) {
+  console.error("Token inválido:", err.message);
+  return Astro.redirect('/');
+}
+---
+
+<Layout>
+    <section class="flex flex-col items-center min-h-screen p-4">
+        <div class="bg-white shadow-2xl rounded-lg p-8 max-w-lg w-full">
+            <div class="text-center mb-6">
+                <img src="/assets/preseHomeLogo.png" alt="PreseHome Logo" class="w-32 mx-auto mb-4" />
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">¡Por favor, confirma tu cuenta!</h1>
+                <p class="text-lg text-gray-600 mb-6">Haz clic en el siguiente botón para confirmar tu cuenta y empezar a usarla.</p>
+            </div>
+
+            <div class="flex justify-center mb-6">
+                <button
+                    id="confirmar-btn"
+                    class="bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 transition-colors duration-300"
+                >
+                    Confirmar cuenta
+                </button>
+            </div>
+
+            <div class="text-center">
+                <a href="/" class="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors duration-300">
+                    Regresar al inicio
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <script src="src/scripts/confirm.js" defer></script>
+</Layout>
