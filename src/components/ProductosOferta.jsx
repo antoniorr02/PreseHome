@@ -25,7 +25,28 @@ const Productos = () => {
   };
 
   const handleAddToCart = (producto) => {
-    console.log("Añadir al carrito:", producto);
+    const imagenPrincipal = producto.imagenes?.find((img) => img.principal)?.url || "";
+  
+    const carrito = JSON.parse(localStorage.getItem("cart")) || [];
+  
+    const existing = carrito.find(p => p.producto_id === producto.producto_id);
+  
+    if (existing) {
+      existing.quantity += 1;
+    } else {
+      carrito.push({
+        producto_id: producto.producto_id,
+        nombre: producto.nombre,
+        imagen: imagenPrincipal,
+        precio: producto.precio,
+        descuento: producto.descuento,
+        quantity: 1
+      });
+    }
+  
+    localStorage.setItem("cart", JSON.stringify(carrito));
+  
+    document.dispatchEvent(new Event("openCartModal"));;
   };
 
   // Filtrar productos con descuento

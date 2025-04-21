@@ -1,5 +1,6 @@
 ---
 import UserSidebar from "../components/zonaUsuarioModal.jsx";
+import CarritoSidebar from "../components/zonaModalCarrito.jsx";
 ---
 <!DOCTYPE html>
 <html lang="es">
@@ -11,6 +12,7 @@ import UserSidebar from "../components/zonaUsuarioModal.jsx";
     <title>Prese Home</title>
 	<link rel="stylesheet" href="/styles/global.css">
   <script src="src/scripts/comprobandoSesion.js" defer></script>
+  <script src="/src/scripts/carritoModal.js" defer></script>
 </head>
 <body class="flex flex-col min-h-screen bg-gray-100 text-gray-900">
   <header class="bg-white shadow-md p-4 flex items-center justify-between">
@@ -44,6 +46,7 @@ import UserSidebar from "../components/zonaUsuarioModal.jsx";
   </header>
   
   <UserSidebar client:load />
+  <CarritoSidebar client:load />
 
     <div class="flex">
       <main class="flex-1 justify-center mx-auto p-4">
