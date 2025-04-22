@@ -21,6 +21,7 @@ export default function CartSidebar() {
 
   const updateCart = () => {
     const carrito = JSON.parse(localStorage.getItem("cart")) || [];
+    console.log("Carrito cargado:", carrito); // Verifica que el carrito se esté cargando correctamente
     setCartItems(carrito);
   };
 
@@ -50,6 +51,22 @@ export default function CartSidebar() {
     const precioUnidad = p.precio - (p.precio * (p.descuento / 100));
     return (precioUnidad * p.quantity).toFixed(2);
   };
+
+  const ahorro = (p) => {
+    const precioUnidad = p.precio;
+    const precioConDescuento = precioUnidad - (precioUnidad * (p.descuento / 100));
+    return (precioUnidad - precioConDescuento) * p.quantity;
+  };
+
+  const totalCarrito = cartItems.reduce(
+    (acc, item) => acc + parseFloat(precioFinal(item)),
+    0
+  );
+
+  const totalAhorro = cartItems.reduce(
+    (acc, item) => acc + parseFloat(ahorro(item)),
+    0
+  );
 
   return (
     <div>
@@ -121,6 +138,12 @@ export default function CartSidebar() {
             {cartItems.length > 0 && (
               <>
                 <hr className="my-4" />
+                <p className="text-lg font-bold text-right mb-2">
+                  Total: {totalCarrito.toFixed(2)}€
+                </p>
+                <p className="text-sm text-right text-gray-500 mb-4">
+                  Ahorro en descuentos: {totalAhorro.toFixed(2)}€
+                </p>
                 <a
                   href="/checkout"
                   className="flex items-center gap-3 justify-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"

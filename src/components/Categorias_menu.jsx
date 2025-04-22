@@ -61,6 +61,31 @@ export default function CategoryView() {
       : producto.precio;
   };
 
+  const handleAddToCart = (producto) => {
+    const imagenPrincipal = producto.imagenes?.find((img) => img.principal)?.url || "";
+  
+    const carrito = JSON.parse(localStorage.getItem("cart")) || [];
+  
+    const existing = carrito.find(p => p.producto_id === producto.producto_id);
+  
+    if (existing) {
+      existing.quantity += 1;
+    } else {
+      carrito.push({
+        producto_id: producto.producto_id,
+        nombre: producto.nombre,
+        imagen: imagenPrincipal,
+        precio: producto.precio,
+        descuento: producto.descuento,
+        quantity: 1
+      });
+    }
+  
+    localStorage.setItem("cart", JSON.stringify(carrito));
+  
+    document.dispatchEvent(new Event("openCartModal"));
+  };
+
   return (
     <div className="flex">
       <aside className="w-64 h-[calc(100vh-160px)] overflow-y-auto">
@@ -129,7 +154,7 @@ export default function CategoryView() {
                     </div>
                   </div>
                   <button
-                    onClick={() => console.log('Añadir al carrito', producto)}
+                    onClick={() => handleAddToCart(producto)}
                     className="mt-4 w-full py-2 px-4 bg-red-300 text-white rounded hover:bg-red-400 transition-colors"
                   >
                     Añadir al carrito
