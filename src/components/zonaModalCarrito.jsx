@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ShoppingCart, Trash2, CreditCard } from "lucide-react";
+import { ShoppingCart, Trash2, CreditCard, Minus, Plus } from "lucide-react";
 
 export default function CartSidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,8 +30,25 @@ export default function CartSidebar() {
     setCartItems(updated);
   };
 
+  const updateItemQuantity = (id, delta) => {
+    const updated = cartItems
+      .map(item => {
+        if (item.producto_id === id) {
+          const newQuantity = item.quantity + delta;
+          if (newQuantity <= 0) return null; // eliminar
+          return { ...item, quantity: newQuantity };
+        }
+        return item;
+      })
+      .filter(item => item !== null);
+    
+    localStorage.setItem("cart", JSON.stringify(updated));
+    setCartItems(updated);
+  };
+
   const precioFinal = (p) => {
-    return (p.precio - (p.precio * (p.descuento / 100))).toFixed(2);
+    const precioUnidad = p.precio - (p.precio * (p.descuento / 100));
+    return (precioUnidad * p.quantity).toFixed(2);
   };
 
   return (
@@ -70,11 +87,23 @@ export default function CartSidebar() {
                       />
                       <div>
                         <p className="font-medium">{item.nombre}</p>
-                        <p className="text-sm text-gray-500">
-                          Cantidad: {item.quantity}
-                        </p>
+                        <div className="flex items-center gap-2 my-1">
+                          <button
+                            onClick={() => updateItemQuantity(item.producto_id, -1)}
+                            className="px-1 text-gray-700 hover:text-gray-900"
+                          >
+                            <Minus size={16} />
+                          </button>
+                          <span>{item.quantity}</span>
+                          <button
+                            onClick={() => updateItemQuantity(item.producto_id, 1)}
+                            className="px-1 text-gray-700 hover:text-gray-900"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
                         <p className="text-sm text-gray-700">
-                          {precioFinal(item)}€
+                          Total: {precioFinal(item)}€
                         </p>
                       </div>
                     </div>
