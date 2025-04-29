@@ -19,12 +19,49 @@ export default function CartSidebar() {
     };
   }, []);
 
-  const updateCart = () => {
-    const carrito = JSON.parse(localStorage.getItem("cart")) || [];
-    console.log("Carrito cargado:", carrito); // Verifica que el carrito se esté cargando correctamente
-    setCartItems(carrito);
+  const updateCart = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/rol-sesion", {
+        method: "GET",
+        credentials: "include",
+      });
+  
+      if (response.ok) {
+        const { rol } = await response.json();
+  
+        if (rol === "Cliente" || rol === "Admin") {
+          const carritoRes = await fetch("http://localhost:5000/carrito", {
+            method: "GET",
+            credentials: "include",
+          });
+  
+          if (carritoRes.ok) {
+            const dbCart = await carritoRes.json();
+            console.log("Carrito desde BD:", dbCart);
+            setCartItems(dbCart);
+          } else {
+            console.warn("No se pudo obtener el carrito desde la BD.");
+            setCartItems([]);
+          }
+        } else {
+          // No hay sesión → usar localStorage
+          const localCart = JSON.parse(localStorage.getItem("cart")) || [];
+          console.log("Carrito desde localStorage:", localCart);
+          setCartItems(localCart);
+        }
+      } else {
+        // No se pudo verificar la sesión → usar localStorage
+        const localCart = JSON.parse(localStorage.getItem("cart")) || [];
+        console.log("Carrito desde localStorage (no sesión):", localCart);
+        setCartItems(localCart);
+      }
+    } catch (error) {
+      console.error("Error al obtener el carrito:", error);
+      const fallbackCart = JSON.parse(localStorage.getItem("cart")) || [];
+      setCartItems(fallbackCart);
+    }
   };
-
+  
   const handleRemoveItem = (id) => {
     const updated = cartItems.filter(item => item.producto_id !== id);
     localStorage.setItem("cart", JSON.stringify(updated));
