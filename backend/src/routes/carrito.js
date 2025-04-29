@@ -65,85 +65,246 @@ export default async function carritoRoutes(fastify, options) {
       
 
     fastify.post('/carrito', async (request, reply) => {
-        const userId = request.user.cliente_id;
-        const { producto_id, cantidad } = request.body;
-    
-        // Asegurar que el carrito existe
-        let carrito = await prisma.carrito.findUnique({
-            where: { cliente_id: userId },
-        });
-    
-        if (!carrito) {
+        try {
+          const token = request.cookies.token;
+          if (!token) {
+            return reply.status(401).send({ error: "No autenticado" });
+          }
+      
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const email = decoded.email;
+      
+          if (!email) {
+            return reply.status(401).send({ error: 'No autenticado' });
+          }
+      
+          const cliente = await prisma.cliente.findUnique({
+            where: { email },
+          });
+      
+          if (!cliente) {
+            return reply.status(404).send({ error: 'Cliente no encontrado' });
+          }
+      
+          const { producto_id, cantidad } = request.body;
+      
+          if (!producto_id || cantidad <= 0) {
+            return reply.status(400).send({ error: 'Datos inválidos' });
+          }
+      
+          let carrito = await prisma.carrito.findUnique({
+            where: { cliente_id: cliente.cliente_id },
+          });
+      
+          if (!carrito) {
             carrito = await prisma.carrito.create({
-                data: {
-                cliente_id: userId,
-                },
+              data: {
+                cliente: { connect: { cliente_id: cliente.cliente_id } }
+              }
             });
-        }
-    
-        // Buscar si ya existe el item
-        const existingItem = await prisma.itemCarrito.findUnique({
+          }
+      
+          const itemExistente = await prisma.itemCarrito.findUnique({
             where: {
-                carrito_id_producto_id: {
+              carrito_id_producto_id: {
                 carrito_id: carrito.carrito_id,
                 producto_id,
-                },
+              },
             },
-        });
-    
-        if (existingItem) {
-        // Actualizar la cantidad
-        await prisma.itemCarrito.update({
-            where: {
+          });
+      
+          if (itemExistente) {
+            await prisma.itemCarrito.update({
+              where: {
                 carrito_id_producto_id: {
-                    carrito_id: carrito.carrito_id,
-                    producto_id,
+                  carrito_id: carrito.carrito_id,
+                  producto_id,
                 },
+              },
+              data: {
+                cantidad: itemExistente.cantidad + cantidad,
+              },
+            });
+          } else {
+            await prisma.itemCarrito.create({
+              data: {
+                carrito: { connect: { carrito_id: carrito.carrito_id } },
+                producto: { connect: { producto_id } },
+                cantidad,
+              },
+            });
+          }
+      
+          return reply.send({ ok: true });
+      
+        } catch (error) {
+          console.error("Error al añadir producto al carrito:", error);
+          return reply.status(500).send({ error: 'Error interno del servidor' });
+        }
+    });
+    
+    fastify.put('/carrito/:producto_id', async (request, reply) => {
+        try {
+          const token = request.cookies.token;
+          if (!token) {
+            return reply.status(401).send({ error: "No autenticado" });
+          }
+    
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const email = decoded.email;
+    
+          const cliente = await prisma.cliente.findUnique({
+            where: { email }
+          });
+    
+          if (!cliente) {
+            return reply.status(404).send({ error: "Cliente no encontrado" });
+          }
+    
+          const producto_id = parseInt(request.params.producto_id);
+          const { delta } = request.body;
+    
+          const carrito = await prisma.carrito.findUnique({
+            where: { cliente_id: cliente.cliente_id }
+          });
+    
+          if (!carrito) {
+            return reply.status(404).send({ error: "Carrito no encontrado" });
+          }
+    
+          const item = await prisma.itemCarrito.findUnique({
+            where: {
+              carrito_id_producto_id: {
+                carrito_id: carrito.carrito_id,
+                producto_id
+              }
+            }
+          });
+    
+          if (!item && delta > 0) {
+            await prisma.itemCarrito.create({
+              data: {
+                carrito_id: carrito.carrito_id,
+                producto_id,
+                cantidad: delta
+              }
+            });
+          } else if (item) {
+            const nuevaCantidad = item.cantidad + delta;
+            if (nuevaCantidad <= 0) {
+              await prisma.itemCarrito.delete({
+                where: {
+                  carrito_id_producto_id: {
+                    carrito_id: carrito.carrito_id,
+                    producto_id
+                  }
+                }
+              });
+            } else {
+              await prisma.itemCarrito.update({
+                where: {
+                  carrito_id_producto_id: {
+                    carrito_id: carrito.carrito_id,
+                    producto_id
+                  }
                 },
                 data: {
-                cantidad,
-            },
-        });
-        } else {
-        // Agregar nuevo item
-        await prisma.itemCarrito.create({
-            data: {
-            carrito_id: carrito.carrito_id,
-            producto_id,
-            cantidad,
-            },
-        });
-        }
+                  cantidad: nuevaCantidad
+                }
+              });
+            }
+          }
     
-        return reply.send({ ok: true });
+          const items = await prisma.itemCarrito.findMany({
+            where: { carrito_id: carrito.carrito_id },
+            include: {
+              producto: {
+                select: {
+                  nombre: true,
+                  precio: true,
+                  descuento: true,
+                  imagenes: true
+                }
+              }
+            }
+          });
+    
+          const carritoActualizado = items.map(item => {
+            const principal = item.producto.imagenes.find(img => img.principal);
+            return {
+              producto_id: item.producto_id,
+              nombre: item.producto.nombre,
+              imagen: principal?.url || "",
+              precio: item.producto.precio,
+              descuento: item.producto.descuento,
+              quantity: item.cantidad
+            };
+          });
+    
+          return reply.send({ carritoActualizado });
+        } catch (err) {
+          console.error(err);
+          return reply.status(500).send({ error: "Error interno del servidor" });
+        }
     });
+    
+      
   
     fastify.delete('/carrito/:producto_id', async (request, reply) => {
-        const userId = request.user.cliente_id;
-        const producto_id = parseInt(request.params.producto_id);
-    
-        const carrito = await prisma.carrito.findUnique({
-        where: { cliente_id: userId },
-        });
-    
-        if (!carrito) return reply.status(404).send({ error: 'Carrito no encontrado' });
-    
-        await prisma.itemCarrito.delete({
-        where: {
-            carrito_id_producto_id: {
-            carrito_id: carrito.carrito_id,
-            producto_id,
+        try {
+          const token = request.cookies.token;
+          if (!token) {
+            return reply.status(401).send({ error: "No autenticado" });
+          }
+      
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const email = decoded.email;
+      
+          if (!email) {
+            return reply.status(401).send({ error: 'No autenticado' });
+          }
+      
+          const cliente = await prisma.cliente.findUnique({
+            where: {
+              email: email,
+            }
+          });
+      
+          if (!cliente) {
+            return reply.status(404).send({ error: 'Cliente no encontrado' });
+          }
+      
+          const producto_id = parseInt(request.params.producto_id);
+      
+          const carrito = await prisma.carrito.findUnique({
+            where: { cliente_id: cliente.cliente_id },
+          });
+      
+          if (!carrito) {
+            return reply.status(404).send({ error: 'Carrito no encontrado' });
+          }
+      
+          await prisma.itemCarrito.delete({
+            where: {
+              carrito_id_producto_id: {
+                carrito_id: carrito.carrito_id,
+                producto_id,
+              },
             },
-        },
-        });
-    
-        return reply.send({ ok: true });
+          });
+      
+          return reply.send({ ok: true });
+      
+        } catch (error) {
+          console.error("Error al eliminar producto del carrito:", error);
+          return reply.status(500).send({ error: 'Error interno del servidor' });
+        }
     });
+      
   
     fastify.post('/carrito/sincronizar', async (request, reply) => {
         const email = request.headers.authorization;
     
-        // Buscar el cliente por email
         const user = await prisma.cliente.findUnique({
             where: { email },
         });
@@ -154,7 +315,6 @@ export default async function carritoRoutes(fastify, options) {
     
         const { items } = request.body;
     
-        // Buscar el carrito asociado al cliente_id
         const carrito = await prisma.carrito.findUnique({
             where: { cliente_id: user.cliente_id },
         });

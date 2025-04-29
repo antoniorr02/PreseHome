@@ -44,13 +44,11 @@ export default function CartSidebar() {
             setCartItems([]);
           }
         } else {
-          // No hay sesión → usar localStorage
           const localCart = JSON.parse(localStorage.getItem("cart")) || [];
           console.log("Carrito desde localStorage:", localCart);
           setCartItems(localCart);
         }
       } else {
-        // No se pudo verificar la sesión → usar localStorage
         const localCart = JSON.parse(localStorage.getItem("cart")) || [];
         console.log("Carrito desde localStorage (no sesión):", localCart);
         setCartItems(localCart);
@@ -62,27 +60,86 @@ export default function CartSidebar() {
     }
   };
   
-  const handleRemoveItem = (id) => {
-    const updated = cartItems.filter(item => item.producto_id !== id);
-    localStorage.setItem("cart", JSON.stringify(updated));
-    setCartItems(updated);
-  };
-
-  const updateItemQuantity = (id, delta) => {
-    const updated = cartItems
-      .map(item => {
-        if (item.producto_id === id) {
-          const newQuantity = item.quantity + delta;
-          if (newQuantity <= 0) return null; // eliminar
-          return { ...item, quantity: newQuantity };
+  const handleRemoveItem = async (producto_id) => {
+    try {
+      const sesionRes = await fetch("http://localhost:5000/rol-sesion", {
+        credentials: "include"
+      });
+  
+      if (sesionRes.ok) {
+        const deleteRes = await fetch(`http://localhost:5000/carrito/${producto_id}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+  
+        if (deleteRes.ok) {
+          const updated = cartItems.filter(item => item.producto_id !== producto_id);
+          setCartItems(updated);
+        } else {
+          console.error("No se pudo eliminar el producto del carrito remoto");
         }
-        return item;
-      })
-      .filter(item => item !== null);
-    
-    localStorage.setItem("cart", JSON.stringify(updated));
-    setCartItems(updated);
+      } else {
+        const updated = cartItems.filter(item => item.producto_id !== producto_id);
+        localStorage.setItem("cart", JSON.stringify(updated));
+        setCartItems(updated);
+      }
+    } catch (error) {
+      console.error("Error al eliminar del carrito:", error);
+    }
   };
+  
+
+  const updateItemQuantity = async (id, delta) => {
+    try {
+      const authRes = await fetch("http://localhost:5000/rol-sesion", {
+        method: "GET",
+        credentials: "include"
+      });
+  
+      const isLoggedIn = authRes.ok;
+  
+      if (isLoggedIn) {
+        const res = await fetch(`http://localhost:5000/carrito/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify({ delta })
+        });
+      
+        const data = await res.json();
+      
+        if (!res.ok) {
+          console.error("Error al actualizar cantidad:", data.error || "Error desconocido");
+          return;
+        }
+      
+        if (data.carritoActualizado) {
+          setCartItems(data.carritoActualizado);
+        } else {
+          console.warn("Respuesta sin carrito actualizado. Considera hacer una recarga del carrito.");
+        }
+      } else {
+        const updated = cartItems
+          .map(item => {
+            if (item.producto_id === id) {
+              const newQuantity = item.quantity + delta;
+              if (newQuantity <= 0) return null;
+              return { ...item, quantity: newQuantity };
+            }
+            return item;
+          })
+          .filter(item => item !== null);
+  
+        localStorage.setItem("cart", JSON.stringify(updated));
+        setCartItems(updated);
+      }
+    } catch (err) {
+      console.error("Error al actualizar cantidad:", err);
+    }
+  };
+  
 
   const precioFinal = (p) => {
     const precioUnidad = p.precio - (p.precio * (p.descuento / 100));

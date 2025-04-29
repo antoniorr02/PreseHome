@@ -31,30 +31,64 @@ export default function ProductModal({ product, onClose }) {
     ? product.precio - (product.precio * (product.descuento / 100))
     : product.precio;
 
-  const handleAddToCart = (producto) => {
+  const handleAddToCart = async (producto) => {
     const imagenPrincipal = producto.imagenes?.find((img) => img.principal)?.url || "";
   
-    const carrito = JSON.parse(localStorage.getItem("cart")) || [];
-
-    const existing = carrito.find(p => p.producto_id === producto.producto_id);
-  
-    if (existing) {
-      existing.quantity += quantity;
-    } else {
-      carrito.push({
-        producto_id: producto.producto_id,
-        nombre: producto.nombre,
-        imagen: imagenPrincipal,
-        precio: precioFinal,
-        descuento: producto.descuento,
-        quantity: quantity
+    try {
+      const authRes = await fetch("http://localhost:5000/rol-sesion", {
+        method: "GET",
+        credentials: "include"
       });
+  
+      const isLoggedIn = authRes.ok;
+  
+      if (isLoggedIn) {
+        const res = await fetch("http://localhost:5000/carrito", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            producto_id: producto.producto_id,
+            cantidad: quantity
+          })
+        });
+  
+        const data = await res.json();
+  
+        if (!res.ok) {
+          console.error("Error al añadir a carrito en BD:", data.error || "Error desconocido");
+          return;
+        }
+      } else {
+        const carrito = JSON.parse(localStorage.getItem("cart")) || [];
+  
+        const existing = carrito.find(p => p.producto_id === producto.producto_id);
+  
+        if (existing) {
+          existing.quantity += quantity;
+        } else {
+          carrito.push({
+            producto_id: producto.producto_id,
+            nombre: producto.nombre,
+            imagen: imagenPrincipal,
+            precio: precioFinal,
+            descuento: producto.descuento,
+            quantity: quantity
+          });
+        }
+  
+        localStorage.setItem("cart", JSON.stringify(carrito));
+      }
+  
+      document.dispatchEvent(new Event("openCartModal"));
+      onClose();
+    } catch (err) {
+      console.error("Error al añadir al carrito:", err);
     }
-
-    localStorage.setItem("cart", JSON.stringify(carrito));
-    document.dispatchEvent(new Event("openCartModal"));
-    onClose();
   };
+    
 
   return (
     <div
