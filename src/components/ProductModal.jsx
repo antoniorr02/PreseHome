@@ -26,10 +26,69 @@ export default function ProductModal({ product, onClose }) {
     setSelectedImage(url);
   };
 
-  // Calcular el precio final solo una vez antes de renderizar
+  // Calcular precio final del producto
   const precioFinal = product.descuento && product.descuento > 0
     ? product.precio - (product.precio * (product.descuento / 100))
     : product.precio;
+
+  const handleAddToCart = async (producto) => {
+    const imagenPrincipal = producto.imagenes?.find((img) => img.principal)?.url || "";
+  
+    try {
+      const authRes = await fetch("http://localhost:5000/rol-sesion", {
+        method: "GET",
+        credentials: "include"
+      });
+  
+      const isLoggedIn = authRes.ok;
+  
+      if (isLoggedIn) {
+        const res = await fetch("http://localhost:5000/carrito", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            producto_id: producto.producto_id,
+            cantidad: quantity
+          })
+        });
+  
+        const data = await res.json();
+  
+        if (!res.ok) {
+          console.error("Error al añadir a carrito en BD:", data.error || "Error desconocido");
+          return;
+        }
+      } else {
+        const carrito = JSON.parse(localStorage.getItem("cart")) || [];
+  
+        const existing = carrito.find(p => p.producto_id === producto.producto_id);
+  
+        if (existing) {
+          existing.quantity += quantity;
+        } else {
+          carrito.push({
+            producto_id: producto.producto_id,
+            nombre: producto.nombre,
+            imagen: imagenPrincipal,
+            precio: precioFinal,
+            descuento: producto.descuento,
+            quantity: quantity
+          });
+        }
+  
+        localStorage.setItem("cart", JSON.stringify(carrito));
+      }
+  
+      document.dispatchEvent(new Event("openCartModal"));
+      onClose();
+    } catch (err) {
+      console.error("Error al añadir al carrito:", err);
+    }
+  };
+    
 
   return (
     <div
@@ -39,9 +98,7 @@ export default function ProductModal({ product, onClose }) {
     >
       <div
         className="bg-white p-8 rounded-2xl shadow-xl max-w-3xl w-full relative overflow-y-auto max-h-[80vh]"
-        style={{
-          scrollbarWidth: 'none',
-        }}
+        style={{ scrollbarWidth: 'none' }}
         onClick={(e) => e.stopPropagation()}
       >
         <button className="absolute top-4 right-4 text-2xl text-gray-600 hover:text-gray-800 transition-colors" onClick={onClose}>✖</button>
@@ -65,7 +122,6 @@ export default function ProductModal({ product, onClose }) {
           ))}
         </div>
 
-        {/* Mostrar el precio con descuento si existe */}
         <div className="text-lg text-gray-600 font-semibold space-x-2">
           {product.descuento && product.descuento > 0 ? (
             <>
@@ -102,7 +158,7 @@ export default function ProductModal({ product, onClose }) {
 
         <div className="mt-6 flex justify-center">
           <button
-            onClick={() => console.log("Añadir al carrito", product, quantity)}
+            onClick={() => handleAddToCart(product)}
             className="w-full py-3 px-6 bg-red-300 text-white rounded-lg shadow-lg hover:bg-red-400 transition-colors"
           >
             Añadir al carrito

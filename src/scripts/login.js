@@ -12,19 +12,29 @@ document.addEventListener("DOMContentLoaded", () => {
         const password = formData.get("password");
 
         try {
-        const response = await fetch('http://localhost:5000/login', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password }),
-            credentials: "include"
-        });
-    
-        const result = await response.json();
-    
-        if (response.ok) {
-            window.location.href = '/';
+            const response = await fetch('http://localhost:5000/login', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+                credentials: "include"
+            });
+        
+            const result = await response.json();
+        
+            if (response.ok) {
+                const token = result.token;
+                const localCart = JSON.parse(localStorage.getItem("cart"));
+                if (localCart?.length > 0) {
+                    await fetch("http://localhost:5000/carrito/sincronizar", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", Authorization: `${email}` },
+                        body: JSON.stringify({ items: localCart }),
+                    });
+                    localStorage.removeItem("cart");
+                }
+                window.location.href = '/';
         } else {
             errorMessage.textContent = result.error || "Error al registrar el usuario";
             errorMessage.classList.remove("hidden");
@@ -35,4 +45,3 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
-  

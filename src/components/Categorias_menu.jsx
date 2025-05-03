@@ -54,11 +54,67 @@ export default function CategoryView() {
     }
   }, [selectedCategory]);
 
-  // Función para calcular el precio final con descuento
   const calcularPrecioFinal = (producto) => {
     return producto.descuento && producto.descuento > 0
       ? producto.precio - (producto.precio * (producto.descuento / 100))
       : producto.precio;
+  };
+
+  const handleAddToCart = async (producto) => {
+    const imagenPrincipal = producto.imagenes?.find((img) => img.principal)?.url || "";
+  
+    try {
+      const authRes = await fetch("http://localhost:5000/rol-sesion", {
+        method: "GET",
+        credentials: "include"
+      });
+  
+      const isLoggedIn = authRes.ok;
+  
+      if (isLoggedIn) {
+        const res = await fetch("http://localhost:5000/carrito", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            producto_id: producto.producto_id,
+            cantidad: 1
+          })
+        });
+  
+        const data = await res.json();
+  
+        if (!res.ok) {
+          console.error("Error al añadir a carrito en BD:", data.error || "Error desconocido");
+          return;
+        }
+      } else {
+        const carrito = JSON.parse(localStorage.getItem("cart")) || [];
+  
+        const existing = carrito.find(p => p.producto_id === producto.producto_id);
+  
+        if (existing) {
+          existing.quantity += 1;
+        } else {
+          carrito.push({
+            producto_id: producto.producto_id,
+            nombre: producto.nombre,
+            imagen: imagenPrincipal,
+            precio: producto.precio,
+            descuento: producto.descuento,
+            quantity: 1
+          });
+        }
+  
+        localStorage.setItem("cart", JSON.stringify(carrito));
+      }
+  
+      document.dispatchEvent(new Event("openCartModal"));
+    } catch (err) {
+      console.error("Error al añadir al carrito:", err);
+    }
   };
 
   return (
@@ -129,7 +185,7 @@ export default function CategoryView() {
                     </div>
                   </div>
                   <button
-                    onClick={() => console.log('Añadir al carrito', producto)}
+                    onClick={() => handleAddToCart(producto)}
                     className="mt-4 w-full py-2 px-4 bg-red-300 text-white rounded hover:bg-red-400 transition-colors"
                   >
                     Añadir al carrito

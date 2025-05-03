@@ -2,9 +2,11 @@
 import Ofertas from '../components/Ofertas.astro';
 import Layout from '../layouts/Layout.astro';
 import Categorias from '../components/Categorias.jsx';
+import SincronizarCarritoGoogle from '../components/SincronizarCarritoGoogle.jsx';
 ---
 
 <Layout>
-	<Ofertas/>
-	<Categorias client:load />
+  <Ofertas />
+  <Categorias client:load />
+  <SincronizarCarritoGoogle client:load />
 </Layout>

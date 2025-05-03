@@ -34,9 +34,63 @@ const Productos = () => {
     }
   };
 
-  const handleAddToCart = (producto) => {
-    console.log("Añadir al carrito:", producto);
+  const handleAddToCart = async (producto) => {
+    const imagenPrincipal = producto.imagenes?.find((img) => img.principal)?.url || "";
+  
+    try {
+      const authRes = await fetch("http://localhost:5000/rol-sesion", {
+        method: "GET",
+        credentials: "include"
+      });
+  
+      const isLoggedIn = authRes.ok;
+  
+      if (isLoggedIn) {
+        const res = await fetch("http://localhost:5000/carrito", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            producto_id: producto.producto_id,
+            cantidad: 1
+          })
+        });
+  
+        const data = await res.json();
+  
+        if (!res.ok) {
+          console.error("Error al añadir a carrito en BD:", data.error || "Error desconocido");
+          return;
+        }
+      } else {
+        const carrito = JSON.parse(localStorage.getItem("cart")) || [];
+  
+        const existing = carrito.find(p => p.producto_id === producto.producto_id);
+  
+        if (existing) {
+          existing.quantity += 1;
+        } else {
+          carrito.push({
+            producto_id: producto.producto_id,
+            nombre: producto.nombre,
+            imagen: imagenPrincipal,
+            precio: producto.precio,
+            descuento: producto.descuento,
+            quantity: 1
+          });
+        }
+  
+        localStorage.setItem("cart", JSON.stringify(carrito));
+      }
+  
+      document.dispatchEvent(new Event("openCartModal"));
+    } catch (err) {
+      console.error("Error al añadir al carrito:", err);
+    }
   };
+  
 
   return (
     <section className="min-h-screen grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-4">
