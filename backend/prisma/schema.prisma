@@ -119,19 +119,12 @@ model Reseña {
   reseña_id       Int      @id @default(autoincrement())
   producto_id     Int
   cliente_id      Int
-  calificacion    Calificacion
+  nombre_usuario  String
+  calificacion    Int      // 1 a 5
   comentario      String?
   fecha           DateTime @default(now())
   producto        Producto @relation(fields: [producto_id], references: [producto_id])
   cliente         Cliente  @relation(fields: [cliente_id], references: [cliente_id])
-}
-
-enum Calificacion {
-  E
-  D
-  C
-  B
-  A
 }
 
 model Tarjeta {

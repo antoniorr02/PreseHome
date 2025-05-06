@@ -179,7 +179,7 @@ const UserProfile = () => {
                   userData.direcciones.map((dir) => (
                     <li
                       key={dir.direccion_id}
-                      className="border border-gray-400 p-4 rounded-lg flex justify-between items-center bg-gray-100"
+                      className="border border-gray-400 p-4 rounded-lg flex justify-between items-center bg-gray-100 bg-opacity-40"
                     >
                       <div className="text-gray-700">
                         <div>{dir.calle} {dir.numero}, {dir.piso}</div>

@@ -1,10 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ProductModal({ product, onClose }) {
   if (!product) return null;
 
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(product.imagenes.find(imagen => imagen.principal)?.url);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [mediaEstrellas, setMediaEstrellas] = useState(0);
+  const [cantidadValoraciones, setCantidadValoraciones] = useState(0);
+  const [valoraciones, setValoraciones] = useState([]);
+
+  useEffect(() => {
+    if (product?.producto_id) {
+      fetchMedia();
+      fetchValoraciones();
+    }
+  }, [product?.producto_id]);  
 
   const handleBackgroundClick = (e) => {
     if (e.target.id === "modal-background") {
@@ -26,22 +39,21 @@ export default function ProductModal({ product, onClose }) {
     setSelectedImage(url);
   };
 
-  // Calcular precio final del producto
   const precioFinal = product.descuento && product.descuento > 0
     ? product.precio - (product.precio * (product.descuento / 100))
     : product.precio;
 
   const handleAddToCart = async (producto) => {
     const imagenPrincipal = producto.imagenes?.find((img) => img.principal)?.url || "";
-  
+
     try {
       const authRes = await fetch("http://localhost:5000/rol-sesion", {
         method: "GET",
         credentials: "include"
       });
-  
+
       const isLoggedIn = authRes.ok;
-  
+
       if (isLoggedIn) {
         const res = await fetch("http://localhost:5000/carrito", {
           method: "POST",
@@ -54,18 +66,18 @@ export default function ProductModal({ product, onClose }) {
             cantidad: quantity
           })
         });
-  
+
         const data = await res.json();
-  
+
         if (!res.ok) {
           console.error("Error al añadir a carrito en BD:", data.error || "Error desconocido");
           return;
         }
       } else {
         const carrito = JSON.parse(localStorage.getItem("cart")) || [];
-  
+
         const existing = carrito.find(p => p.producto_id === producto.producto_id);
-  
+
         if (existing) {
           existing.quantity += quantity;
         } else {
@@ -78,17 +90,93 @@ export default function ProductModal({ product, onClose }) {
             quantity: quantity
           });
         }
-  
+
         localStorage.setItem("cart", JSON.stringify(carrito));
       }
-  
+
       document.dispatchEvent(new Event("openCartModal"));
       onClose();
     } catch (err) {
       console.error("Error al añadir al carrito:", err);
     }
+  }; 
+
+  const fetchMedia = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/productos/${product.producto_id}/media-reseñas`);
+      const data = await res.json();
+      setMediaEstrellas(data.media);
+      setCantidadValoraciones(data.cantidad);
+    } catch (err) {
+      console.error("Error al obtener media de reseñas:", err);
+    }
   };
-    
+
+  const renderEstrellas = (valor) => {
+    const estrellas = [];
+    for (let i = 1; i <= 5; i++) {
+      estrellas.push(
+        <span key={i} className={i <= valor ? 'text-yellow-400' : 'text-gray-300'}>
+          ★
+        </span>
+      );
+    }
+    return estrellas;
+  };
+
+  const fetchValoraciones = async () => {
+    if (!product?.producto_id) return;
+  
+    try {
+      const res = await fetch(`http://localhost:5000/valoraciones/${product.producto_id}`);
+      const data = await res.json();
+      setValoraciones(data.valoraciones);
+    } catch (error) {
+      console.error("Error al obtener valoraciones:", error);
+    }
+  };  
+
+  const handleSubmitReview = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/reseñas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          producto_id: product.producto_id,
+          calificacion: rating,
+          comentario: comment
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("Error al enviar reseña:", data.error || "Error desconocido");
+        return;
+      }
+
+      alert("¡Gracias por tu reseña!");
+      setRating(0);
+      setHoverRating(0);
+      setComment("");
+    } catch (error) {
+      console.error("Error al enviar reseña:", error);
+    }
+  };
+
+  const Star = ({ starId, marked }) => (
+    <span
+      className={`text-3xl cursor-pointer ${marked ? "text-yellow-400" : "text-gray-300"}`}
+      onClick={() => setRating(starId)}
+      onMouseEnter={() => setHoverRating(starId)}
+      onMouseLeave={() => setHoverRating(0)}
+    >
+      ★
+    </span>
+  );
 
   return (
     <div
@@ -140,6 +228,13 @@ export default function ProductModal({ product, onClose }) {
           )}
         </div>
 
+        <div className="mb-6 text-xl">
+          {renderEstrellas(Math.round(mediaEstrellas))}
+          <span className="ml-2 text-gray-600 text-sm">
+            ({cantidadValoraciones} valoraciones)
+          </span>
+        </div>
+
         <div className="flex items-center justify-between mt-6 border rounded-lg">
           <button
             onClick={decrementQuantity}
@@ -165,8 +260,63 @@ export default function ProductModal({ product, onClose }) {
           </button>
         </div>
 
-        <p className='text-black font-bold text-xl mt-3'>Descripción del producto</p>
+        <p className="text-black font-bold text-xl mt-6">Descripción del producto</p>
         <p className="text-gray-700 text-lg mb-4">{product.descripcion}</p>
+
+        <div className="mt-6 border-t pt-4">
+          <h3 className="text-lg font-bold mb-2">Valorar producto</h3>
+
+          <div className="flex space-x-1 mb-4">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                starId={star}
+                marked={hoverRating ? star <= hoverRating : star <= rating}
+              />
+            ))}
+          </div>
+
+          <label className="block mb-2 font-medium">
+            Comentario (opcional):
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="block w-full mt-1 border rounded-md px-2 py-1"
+              rows={3}
+            />
+          </label>
+
+          <button
+            onClick={handleSubmitReview}
+            disabled={rating === 0}
+            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors disabled:bg-gray-300"
+          >
+            Enviar reseña
+          </button>
+        </div>
+
+        {valoraciones.length > 0 ? (
+          <section className="mt-12">
+            <h3 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Opiniones de los usuarios</h3>
+            <ul className="space-y-6">
+              {valoraciones.map((val, index) => (
+                <li
+                  key={index}
+                  className="bg-white border border-gray-200 rounded-xl p-5 shadow transition hover:shadow-md"
+                >
+                  <div className="text-md font-semibold text-gray-800">{val.nombre_usuario}</div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-yellow-500 text-xl">{renderEstrellas(Math.round(val.calificacion))}</div>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed pl-4">{val.comentario || <i>Sin comentario</i>}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : (
+          <p className="mt-12 text-gray-500 italic text-center">Todavía no hay reseñas para este producto.</p>
+        )}
+
       </div>
     </div>
   );

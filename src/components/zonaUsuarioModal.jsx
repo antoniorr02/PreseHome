@@ -64,7 +64,7 @@ export default function UserSidebar() {
                 <User size={20} /> Mi perfil
               </a>
               <a
-                href="/mis-pedidos"
+                href="/pedidos"
                 className="flex items-center gap-3 cursor-pointer hover:text-blue-600"
                 onClick={() => setIsOpen(false)}
               >
