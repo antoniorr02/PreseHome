@@ -60,18 +60,17 @@ export default async function (fastify, options) {
 });
 
 
-  // BORRAR?
-  // fastify.get('/productos/:id', async (request, reply) => {
-  //   const { id } = request.params
-  //   const producto = await prisma.producto.findUnique({
-  //     where: { producto_id: parseInt(id) },
-  //     include: { imagenes: true, categorias: { include: { categoria: true } }, reseñas: true },
-  //   })
-  //   if (!producto) {
-  //     return reply.status(404).send({ error: 'Producto no encontrado' })
-  //   }
-  //   return reply.send(producto)
-  // })
+  fastify.get('/productos/:id', async (request, reply) => {
+    const { id } = request.params
+    const producto = await prisma.producto.findUnique({
+      where: { producto_id: parseInt(id) },
+      include: { imagenes: true, categorias: { include: { categoria: true } }, reseñas: true },
+    })
+    if (!producto) {
+      return reply.status(404).send({ error: 'Producto no encontrado' })
+    }
+    return reply.send(producto)
+  })
 
   
   // A partir de aqui pedidos y carrito ir viendo según hagan falta

@@ -11,6 +11,7 @@ import adminRoutes from "./routes/admin.js"
 import authRoutes from "./routes/auth.js"
 import googleAuthRoutes from "./routes/googleAuth.js";
 import carritoRoutes from "./routes/carrito.js";
+import ratingRoutes from "./routes/rating.js";
 
 const prisma = new PrismaClient();
 const fastify = Fastify();
@@ -40,6 +41,7 @@ fastify.register(adminRoutes, { prisma });
 fastify.register(authRoutes, { prisma });
 fastify.register(googleAuthRoutes, { prisma });
 fastify.register(carritoRoutes, { prisma });
+fastify.register(ratingRoutes, { prisma });
 console.log("Routes registered.");
 
 // Eliminar cuentas no verificadas después de 24 horas
