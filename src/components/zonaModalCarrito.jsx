@@ -239,7 +239,7 @@ export default function CartSidebar() {
                   Ahorro en descuentos: {totalAhorro.toFixed(2)}€
                 </p>
                 <a
-                  href="/checkout"
+                  href="/compra"
                   className="flex items-center gap-3 justify-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                   onClick={() => setIsOpen(false)}
                 >
