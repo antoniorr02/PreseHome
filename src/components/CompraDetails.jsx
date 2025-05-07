@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 
 export default function CompraDetails() {
   const [cartItems, setCartItems] = useState([]);
-  const [envio, setEnvio] = useState(4.99); // fijo por ahora
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -23,7 +22,6 @@ export default function CompraDetails() {
           }
         }
 
-        // En cualquier otro caso, usamos el localStorage
         const localCart = JSON.parse(localStorage.getItem("cart")) || [];
         setCartItems(localCart);
       } catch (error) {
@@ -46,14 +44,18 @@ export default function CompraDetails() {
     const precioDescuento = item.precio - (item.precio * item.descuento) / 100;
     return (precioOriginal - precioDescuento) * item.quantity;
   };
-  
-  const totalAhorro = cartItems.reduce((acc, item) => acc + calcularAhorro(item), 0);  
+
   const subtotal = cartItems.reduce((acc, item) => acc + calcularPrecio(item), 0);
+  const envio = subtotal >= 50 ? 0 : 2.99;
+  const totalAhorro = cartItems.reduce((acc, item) => acc + calcularAhorro(item), 0);
   const total = (subtotal + envio).toFixed(2);
 
   return (
     <section className="min-h-screen max-w-3xl mx-auto p-4 space-y-8">
       <h1 className="text-3xl font-semibold text-center text-black">Resumen de tu compra</h1>
+      <p className="text-center text-sm text-blue-600 bg-blue-100 rounded px-4 py-2">
+        ¡Envío gratuito en pedidos superiores a 50 €!
+      </p>
 
       {cartItems.length === 0 ? (
         <p className="text-center text-gray-600">No hay productos en tu carrito.</p>
