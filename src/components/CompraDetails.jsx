@@ -108,10 +108,10 @@ export default function CompraDetails() {
           </div>
 
           <button
-            onClick={() => alert("Aquí iría la lógica de pago")}
+            onClick={() => window.location.href = "/confirmar-datos"}
             className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition-colors"
           >
-            Pagar ahora
+            Finalizar compra
           </button>
         </>
       )}

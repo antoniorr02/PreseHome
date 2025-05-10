@@ -51,6 +51,7 @@ export default async function userRoutes(fastify, options) {
             where: { email },
             include: {
               direcciones: true,
+              tarjetas: true,
             },
           });
       
@@ -67,6 +68,7 @@ export default async function userRoutes(fastify, options) {
             dni: cliente.dni,
             telefono: cliente.telefono,
             direcciones: cliente.direcciones,
+            tarjetas: cliente.tarjetas,
           });
         } catch (error) {
           console.error('Error al obtener los datos del cliente:', error);
@@ -150,6 +152,39 @@ export default async function userRoutes(fastify, options) {
           return reply.status(400).send({ error: 'Error al agregar la dirección', details: error.message });
         }
       });
+
+      fastify.put('/direccion/:direccion_id', { preHandler: [authenticate] }, async (request, reply) => {
+        const { direccion_id } = request.params;
+        const data = request.body;
+      
+        try {
+          // Verificar si la dirección existe
+          const direccionExistente = await prisma.direccion.findUnique({
+            where: { direccion_id: parseInt(direccion_id) }
+          });
+      
+          if (!direccionExistente) {
+            return reply.status(404).send({ error: 'Dirección no encontrada' });
+          }
+      
+          // Actualizar la dirección
+          const direccionActualizada = await prisma.direccion.update({
+            where: { direccion_id: parseInt(direccion_id) },
+            data: {
+              calle: data.calle,
+              numero: data.numero,
+              piso: data.piso,
+              ciudad: data.ciudad,
+              cod_postal: data.cod_postal,
+              pais: data.pais,
+            },
+          });
+      
+          return reply.send(direccionActualizada);
+        } catch (error) {
+          return reply.status(400).send({ error: 'Error al modificar la dirección', details: error.message });
+        }
+      });      
     
       fastify.delete('/direccion/:id', { preHandler: [authenticate] }, async (request, reply) => {
         const { id } = request.params;
@@ -164,5 +199,84 @@ export default async function userRoutes(fastify, options) {
           return reply.status(400).send({ error: 'Error al eliminar la dirección', details: error.message });
         }
       });
+
+      fastify.post('/tarjeta/:cliente_id', { preHandler: [authenticate] }, async (request, reply) => {
+        const { cliente_id } = request.params;
+        const data = request.body;
+      
+        try {
+          const cliente = await prisma.cliente.findUnique({
+            where: { cliente_id: parseInt(cliente_id) },
+          });
+      
+          if (!cliente) {
+            return reply.status(404).send({ error: 'Cliente no encontrado' });
+          }
+      
+          const nuevaTarjeta = await prisma.tarjeta.create({
+            data: {
+              cliente_id: parseInt(cliente_id),
+              numero: data.numero,
+              titular: data.titular,
+              caducidad: data.caducidad,
+              cvv: data.cvv,
+            },
+          });
+      
+          return reply.send(nuevaTarjeta);
+        } catch (error) {
+          console.error(error);
+          return reply.status(400).send({ error: 'Error al agregar la tarjeta', details: error.message });
+        }
+      });
+
+      fastify.put('/tarjeta/:tarjeta_id', { preHandler: [authenticate] }, async (request, reply) => {
+        const { tarjeta_id } = request.params;
+        const data = request.body;
+      
+        try {
+          const tarjeta = await prisma.tarjeta.findUnique({
+            where: { tarjeta_id: parseInt(tarjeta_id) },
+          });
+      
+          if (!tarjeta) {
+            return reply.status(404).send({ error: 'Tarjeta no encontrada' });
+          }
+      
+          const tarjetaActualizada = await prisma.tarjeta.update({
+            where: { tarjeta_id: parseInt(tarjeta_id) },
+            data,
+          });
+      
+          return reply.send(tarjetaActualizada);
+        } catch (error) {
+          console.error(error);
+          return reply.status(400).send({ error: 'Error al actualizar la tarjeta', details: error.message });
+        }
+      });
+      
+      fastify.delete('/tarjeta/:tarjeta_id', { preHandler: [authenticate] }, async (request, reply) => {
+        const { tarjeta_id } = request.params;
+      
+        try {
+          const tarjeta = await prisma.tarjeta.findUnique({
+            where: { tarjeta_id: parseInt(tarjeta_id) },
+          });
+      
+          if (!tarjeta) {
+            return reply.status(404).send({ error: 'Tarjeta no encontrada' });
+          }
+      
+          await prisma.tarjeta.delete({
+            where: { tarjeta_id: parseInt(tarjeta_id) },
+          });
+      
+          return reply.send({ mensaje: 'Tarjeta eliminada correctamente' });
+        } catch (error) {
+          console.error(error);
+          return reply.status(400).send({ error: 'Error al eliminar la tarjeta', details: error.message });
+        }
+      });
+      
   }
   
