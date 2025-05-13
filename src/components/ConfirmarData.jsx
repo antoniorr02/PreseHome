@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 
-export default function ConfirmarData() {
+const ConfirmarData= () => {
   const [cliente, setCliente] = useState(null);
   const [direccionSeleccionada, setDireccionSeleccionada] = useState(null);
   const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState(null);
 
   useEffect(() => {
-    const fetchCliente = async () => {
+    const fetchUserData = async () => {
       try {
         const res = await fetch("http://localhost:5000/datos-cliente", {
+          method: 'GET',
           credentials: "include",
         });
         if (!res.ok) throw new Error("Error al obtener datos del cliente");
@@ -27,33 +28,32 @@ export default function ConfirmarData() {
         console.error(err);
       }
     };
-
-    fetchCliente();
+    fetchUserData();
   }, []);
 
-  const handleDireccionChange = (e) => {
+  const handleDireccionChange = async (e) => {
     const selectedId = parseInt(e.target.value);
     const dir = cliente?.direcciones.find((d) => d.direccion_id === selectedId);
     setDireccionSeleccionada({ ...dir });
   };
 
-  const handleTarjetaChange = (e) => {
+  const handleTarjetaChange = async (e) => {
     const selectedId = parseInt(e.target.value);
     const tarjeta = cliente?.tarjetas.find((t) => t.tarjeta_id === selectedId);
     setTarjetaSeleccionada({ ...tarjeta });
   };
 
-  const handleClienteChange = (e) => {
+  const handleClienteChange = async (e) => {
     const { name, value } = e.target;
     setCliente((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDireccionEdit = (e) => {
+  const handleDireccionEdit = async (e) => {
     const { name, value } = e.target;
     setDireccionSeleccionada((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleTarjetaEdit = (e) => {
+  const handleTarjetaEdit = async (e) => {
     const { name, value } = e.target;
     setTarjetaSeleccionada((prev) => ({ ...prev, [name]: value }));
   };
@@ -137,6 +137,21 @@ export default function ConfirmarData() {
 
         console.log("Tarjeta guardada:", tarjetaSeleccionada);
       }
+
+      // Confirmar pedido y generar factura
+      const resPedido = await fetch(`http://localhost:5000/confirmar-pago`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!resPedido.ok) throw new Error("Error al confirmar el pedido");
+
+      const pedidoConfirmado = await resPedido.json();
+      console.log("Pedido confirmado:", pedidoConfirmado);
+
+      // Aquí podrías redirigir o mostrar una confirmación
+      alert("¡Pedido realizado con éxito! Revisa tu correo para la factura.");
+      
 
     } catch (err) {
       console.error(err);
@@ -282,4 +297,6 @@ export default function ConfirmarData() {
       </div>
     </form>
   );
-}
+};
+
+export default ConfirmarData;

@@ -277,6 +277,85 @@ export default async function userRoutes(fastify, options) {
           return reply.status(400).send({ error: 'Error al eliminar la tarjeta', details: error.message });
         }
       });
+
+      fastify.post('/confirmar-pago', { preHandler: [authenticate] }, async (request, reply) => {
+        console.log('Cookies recibidas:', request.cookies);
+
+        try {
+          const token = request.cookies.token;
+          if (!token) {
+            return reply.status(401).send({ error: 'No autorizado' });
+          }
+      
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const email = decoded.email;
+      
+          const cliente = await prisma.cliente.findUnique({
+            where: { email },
+            include: {
+              carrito: {
+                include: {
+                  items: {
+                    include: {
+                      producto: true
+                    }
+                  }
+                }
+              }
+            }
+          });
+          
+          console.log(JSON.stringify(cliente, null, 2));
+
+          if (!cliente || !cliente.carrito || cliente.carrito.items.length === 0) {
+            return reply.status(400).send({ error: 'Carrito vacío o cliente no encontrado' });
+          }
+      
+          const calcularPrecioConDescuento = (precio, descuento) => {
+            return precio - (precio * descuento / 100);
+          };
+      
+          const total = cliente.carrito.items.reduce((sum, item) => {
+            const precio = item.producto.precio.toNumber();
+            const descuento = item.producto.descuento || 0;
+            const precioConDescuento = calcularPrecioConDescuento(precio, descuento);
+            return sum + (precioConDescuento * item.cantidad);
+          }, 0);
+      
+          const nuevoPedido = await prisma.pedido.create({
+            data: {
+              estado: 'pendiente',
+              total: total,
+              detalle_pedido: {
+                create: cliente.carrito.items.map(item => ({
+                  producto_id: item.producto_id,
+                  cantidad: item.cantidad,
+                  precio_unitario: item.producto.precio
+                }))
+              },
+              pedidos: {
+                create: {
+                  cliente_id: cliente.cliente_id
+                }
+              }
+            },
+            include: { detalle_pedido: true }
+          });
+      
+          await prisma.itemCarrito.deleteMany({
+            where: {
+              carrito_id: cliente.carrito.carrito_id
+            }
+          });
+      
+          return reply.send({ mensaje: 'Pedido confirmado y factura enviada.', pedido: nuevoPedido });
+        } catch (error) {
+          console.error(error);
+          return reply.status(500).send({ error: 'Error al procesar el pedido', details: error.message });
+        }
+      });
+      
+      
       
   }
   
