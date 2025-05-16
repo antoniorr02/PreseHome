@@ -15,18 +15,25 @@ const transporter = nodemailer.createTransport({
 export async function enviarCorreoFacturacion(destinatario, direccion,{ pedido, total }) {
   const filePath = await generarFacturaPDF(direccion, pedido, total);
 
-
-  // Crear una tabla con los detalles del pedido
-  const detallesPedido = pedido.detalle_pedido.map(item => {
-    return `
-      <tr>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.producto.nombre}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.cantidad}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.precio_unitario}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${(item.precio_unitario * item.cantidad).toFixed(2)}</td>
-      </tr>
-    `;
-  }).join('');
+    const detallesPedido = pedido.detalle_pedido.map(item => {
+        const precioFinal = item.producto.descuento > 0 
+            ? item.precio_unitario * (1 - item.producto.descuento/100)
+            : item.precio_unitario;
+        
+        const tieneDescuento = item.producto.descuento > 0;
+        
+        return `
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.producto.nombre}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.cantidad}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd; ${tieneDescuento ? 'text-decoration: line-through; color: #999;' : ''}">
+                    ${item.precio_unitario.toFixed(2)}€
+                    ${tieneDescuento ? `<br><span style="color: #2e7d32; font-weight: bold;">${precioFinal.toFixed(2)}€ (${item.producto.descuento}% desc.)</span>` : ''}
+                </td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">${(precioFinal * item.cantidad).toFixed(2)}€</td>
+            </tr>
+        `;
+    }).join('');
 
   const mailOptions = {
     from: `"PreseHome" <${process.env.EMAIL_USER}>`,

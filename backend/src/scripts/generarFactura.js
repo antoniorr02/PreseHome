@@ -57,14 +57,25 @@ export async function generarFacturaPDF(direccion, pedido, total) {
           </tr>
         </thead>
         <tbody>
-          ${pedido.detalle_pedido.map(item => `
-            <tr>
-              <td style="border-bottom: 1px solid #ddd; padding: 8px;">${item.producto.nombre}</td>
-              <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">${item.cantidad}</td>
-              <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">${item.precio_unitario.toFixed(2)}</td>
-              <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">${(item.precio_unitario * item.cantidad).toFixed(2)}</td>
-            </tr>
-          `).join('')}
+                ${pedido.detalle_pedido.map(item => {
+                    const precioFinal = item.producto.descuento > 0 
+                        ? item.precio_unitario * (1 - item.producto.descuento/100)
+                        : item.precio_unitario;
+                    
+                    return `
+                        <tr>
+                            <td style="border-bottom: 1px solid #ddd; padding: 8px;">${item.producto.nombre}</td>
+                            <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">${item.cantidad}</td>
+                            <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">
+                                ${item.producto.descuento > 0 
+                                    ? `<span style="text-decoration: line-through; color: #999;">${item.precio_unitario.toFixed(2)}</span><br>
+                                       <span style="color: #2e7d32; font-weight: bold;">${precioFinal.toFixed(2)} (${item.producto.descuento}%)</span>`
+                                    : item.precio_unitario.toFixed(2)}
+                            </td>
+                            <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">${(precioFinal * item.cantidad).toFixed(2)}</td>
+                        </tr>
+                    `;
+                }).join('')}
         </tbody>
       </table>
 
