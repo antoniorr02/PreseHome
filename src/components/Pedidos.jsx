@@ -7,38 +7,39 @@ const PedidosUser = () => {
     const [activeSection, setActiveSection] = useState('orders');
     const [reviews, setReviews] = useState([]);
     const [loadingReviews, setLoadingReviews] = useState(false);
-    const [productosMap, setProductosMap] = useState({});
+    const [pedidos, setPedidos] = useState([]);
     const [isEditarReview, setEditarReview] = useState(false);
     const [reviewAEditar, setReviewAEditar] = useState(null);
+    const [productosMap, setProductosMap] = useState({});
 
-    // CAMBIAR POR CARGAR PEDIDOS EN SU MOMENTO
-    // No se puede quitar para indicar q está cargandose la página.
     useEffect(() => {
-        const fetchUserData = async () => {
-        try {
-            const response = await fetch('http://localhost:5000/datos-cliente', {
-            method: 'GET',
-            credentials: 'include',
-            });
-            if (response.status === 401) {
-            window.location.href = '/';
-            return;
-            }
-            if (response.ok) {
-            const data = await response.json();
-            setUserData(data);
-            } else {
-            console.error('Error al obtener los datos');
-            }
-        } catch (error) {
-            console.error('Error al hacer la solicitud:', error);
-        } finally {
-            setLoading(false);
-        }
+      if (activeSection === 'orders') {
+        const fetchPedidos = async () => {
+          try {
+              const response = await fetch('http://localhost:5000/pedidos-cliente', {
+              method: 'GET',
+              credentials: 'include',
+              });
+              if (response.status === 401) {
+              window.location.href = '/';
+              return;
+              }
+              if (response.ok) {
+                const data = await response.json();
+                setPedidos(data.pedidos || []);
+              } else {
+              console.error('Error al obtener los datos');
+              }
+          } catch (error) {
+              console.error('Error al hacer la solicitud:', error);
+          } finally {
+              setLoading(false);
+          }
         };
 
-        fetchUserData();
-    }, []);
+        fetchPedidos();
+      }
+    }, [activeSection]);
 
     useEffect(() => {
         if (activeSection === 'reviews') {
@@ -122,10 +123,92 @@ const PedidosUser = () => {
         switch (activeSection) {
           case 'orders':
             return (
-                <div className="border border-gray-400 p-4 rounded-lg">
+              <div className="space-y-4">
+                {pedidos.length === 0 ? (
+                  <p>No tienes pedidos todavía.</p>
+                ) : (
+                  pedidos.map((pedido) => {
+                    // Formatear el total a 2 decimales
+                    const totalFormateado = parseFloat(pedido.total).toFixed(2);
+                    
+                    return (
+                      <div key={pedido.pedido_id} className="border border-gray-400 p-4 rounded-lg">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="font-semibold">Pedido #{pedido.pedido_id}</h3>
+                          <span className="text-sm text-gray-600">
+                            {new Date(pedido.fecha_pedido).toLocaleDateString('es-ES', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                        
+                        {pedido.detalle_pedido.map((detalle) => {
+                          // Asegurar 2 decimales para todos los precios
+                          const precioUnitario = parseFloat(detalle.precio_unitario).toFixed(2);
+                          const precioConDescuento = detalle.precio_con_descuento 
+                            ? parseFloat(detalle.precio_con_descuento).toFixed(2)
+                            : null;
+                          const precioOriginal = detalle.precio_original 
+                            ? parseFloat(detalle.precio_original).toFixed(2)
+                            : null;
 
+                          return (
+                            <div key={`${pedido.pedido_id}-${detalle.producto_id}`} className="flex items-start mb-4">
+                              {/* Imagen */}
+                              {detalle.producto?.imagenes?.[0]?.url && (
+                                <img
+                                  src={detalle.producto.imagenes[0].url}
+                                  alt={detalle.producto.nombre}
+                                  className="w-24 h-24 object-cover rounded-lg mr-4"
+                                />
+                              )}
 
-                </div>
+                              {/* Info producto */}
+                              <div className="flex-1">
+                                <h4 className="text-md font-semibold text-gray-900">{detalle.producto.nombre}</h4>
+                                <p className="text-sm text-gray-700">Cantidad: {detalle.cantidad}</p>
+                                
+                                {/* Mostrar precio con descuento si aplica */}
+                                {detalle.descuento_aplicado > 0 ? (
+                                  <>
+                                    <p className="text-sm text-gray-500 line-through">
+                                      Precio original: ${precioOriginal}
+                                    </p>
+                                    <p className="text-sm text-green-600 font-semibold">
+                                      Precio con {detalle.descuento_aplicado}% descuento: ${precioConDescuento}
+                                    </p>
+                                  </>
+                                ) : (
+                                  <p className="text-sm text-gray-700">
+                                    Precio unitario: {precioUnitario}€
+                                  </p>
+                                )}
+                                
+                                <p className="text-sm text-gray-500">Estado: {pedido.estado}</p>
+                              </div>
+
+                              {/* Acciones */}
+                              <div className="flex flex-col space-y-2">
+                                <button className="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded">
+                                  Devolver
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        
+                        <div className="flex justify-end mt-2 border-t pt-2">
+                          <p className="font-semibold">Total: {totalFormateado}€</p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             );
             case 'reviews':
                 return (

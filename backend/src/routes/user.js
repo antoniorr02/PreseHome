@@ -363,7 +363,78 @@ export default async function userRoutes(fastify, options) {
         }
       });
       
-      
+      fastify.get('/pedidos-cliente', async (request, reply) => {
+        try {
+            const token = request.cookies.token;
+            if (!token) {
+                return reply.status(401).send({ error: "No autenticado" });
+            }
+    
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const email = decoded.email;
+    
+            if (!email) {
+                return reply.status(401).send({ error: 'No autenticado' });
+            }
+    
+            const cliente = await prisma.Cliente.findUnique({
+                where: { email: email }
+            });
+    
+            if (!cliente) {
+                return reply.status(401).send({ error: 'Debes iniciar sesión para ver tus pedidos.' });
+            }
+    
+            const pedidos = await prisma.pedido.findMany({
+                where: { cliente_id: cliente.cliente_id },
+                include: {
+                    detalle_pedido: {
+                        include: {
+                            producto: {
+                                include: {
+                                    imagenes: {
+                                        where: { principal: true },
+                                        take: 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                orderBy: {
+                    fecha_pedido: 'desc'
+                }
+            });       
+            
+            // Calcular precios con descuento para cada detalle
+            const pedidosConDescuentos = pedidos.map(pedido => {
+              const detallesConDescuento = pedido.detalle_pedido.map(detalle => {
+                  const precioOriginal = parseFloat(detalle.precio_unitario);
+                  const descuento = parseFloat(detalle.producto.descuento || 0);
+                  const precioConDescuento = descuento > 0 
+                      ? precioOriginal * (1 - descuento / 100)
+                      : precioOriginal;
+                  
+                  return {
+                      ...detalle,
+                      precio_con_descuento: precioConDescuento.toFixed(2),
+                      precio_original: precioOriginal.toFixed(2),
+                      descuento_aplicado: descuento
+                  };
+              });
+
+              return {
+                      ...pedido,
+                      detalle_pedido: detallesConDescuento
+                  };
+              });
+    
+            return reply.send({ pedidos: pedidosConDescuentos });
+        } catch (err) {
+            console.error('Error al obtener los pedidos del usuario:', err);
+            reply.status(500).send({ error: 'Error al obtener datos.' });
+        }
+    });    
       
   }
   
