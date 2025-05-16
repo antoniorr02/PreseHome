@@ -1,5 +1,6 @@
 import { authenticate } from '../plugins/authMiddleware.js';
 import jwt from "jsonwebtoken";
+import {enviarCorreoFacturacion} from '../scripts/emailFactura.js'; 
 
 export default async function userRoutes(fastify, options) {
     const { prisma } = options
@@ -279,8 +280,7 @@ export default async function userRoutes(fastify, options) {
       });
 
       fastify.post('/confirmar-pago', { preHandler: [authenticate] }, async (request, reply) => {
-        console.log('Cookies recibidas:', request.cookies);
-
+        const direccion = request.body;
         try {
           const token = request.cookies.token;
           if (!token) {
@@ -305,8 +305,6 @@ export default async function userRoutes(fastify, options) {
             }
           });
           
-          console.log(JSON.stringify(cliente, null, 2));
-
           if (!cliente || !cliente.carrito || cliente.carrito.items.length === 0) {
             return reply.status(400).send({ error: 'Carrito vacío o cliente no encontrado' });
           }
@@ -325,23 +323,33 @@ export default async function userRoutes(fastify, options) {
           const nuevoPedido = await prisma.pedido.create({
             data: {
               estado: 'pendiente',
-              total: total,
+              total,
+              cliente: {
+                connect: { cliente_id: cliente.cliente_id }
+              },
               detalle_pedido: {
                 create: cliente.carrito.items.map(item => ({
                   producto_id: item.producto_id,
                   cantidad: item.cantidad,
                   precio_unitario: item.producto.precio
                 }))
-              },
-              pedidos: {
-                create: {
-                  cliente_id: cliente.cliente_id
-                }
               }
             },
-            include: { detalle_pedido: true }
+            include: {
+              detalle_pedido: {
+                include: {
+                  producto: true
+                }
+              },
+              cliente: true
+            }
           });
-      
+          
+          await enviarCorreoFacturacion(email, direccion,{
+            pedido: nuevoPedido,
+            total: total,
+          });
+
           await prisma.itemCarrito.deleteMany({
             where: {
               carrito_id: cliente.carrito.carrito_id

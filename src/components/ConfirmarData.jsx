@@ -141,7 +141,9 @@ const ConfirmarData= () => {
       // Confirmar pedido y generar factura
       const resPedido = await fetch(`http://localhost:5000/confirmar-pago`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        body: JSON.stringify(direccionSeleccionada),
       });
 
       if (!resPedido.ok) throw new Error("Error al confirmar el pedido");
@@ -149,10 +151,7 @@ const ConfirmarData= () => {
       const pedidoConfirmado = await resPedido.json();
       console.log("Pedido confirmado:", pedidoConfirmado);
 
-      // Aquí podrías redirigir o mostrar una confirmación
-      alert("¡Pedido realizado con éxito! Revisa tu correo para la factura.");
-      
-
+      window.location.href = '/pedido-confirmado';
     } catch (err) {
       console.error(err);
     }

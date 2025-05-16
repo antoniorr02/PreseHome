@@ -22,7 +22,7 @@ model Cliente {
   tarjetas        Tarjeta[] 
   reseñas         Reseña[] 
   carrito         Carrito?
-  pedidos         ClientePedido[] 
+  pedidos         Pedido[] 
   direcciones     Direccion[]
 }
 
@@ -79,8 +79,9 @@ model Pedido {
   fecha_pedido    DateTime @default(now())
   estado          Estado
   total           Decimal
+  cliente_id      Int
+  cliente         Cliente  @relation(fields: [cliente_id], references: [cliente_id])
   detalle_pedido  DetallePedido[]
-  pedidos ClientePedido[]
 }
 
 enum Estado {
@@ -157,12 +158,4 @@ model ProductoCategoria {
   producto        Producto @relation(fields: [producto_id], references: [producto_id])
   categoria       Categoria @relation(fields: [categoria_id], references: [categoria_id])
   @@id([producto_id, categoria_id])
-}
-
-model ClientePedido {
-  cliente_id      Int
-  pedido_id       Int
-  cliente         Cliente @relation(fields: [cliente_id], references: [cliente_id])
-  pedido          Pedido  @relation(fields: [pedido_id], references: [pedido_id])
-  @@id([cliente_id, pedido_id])
 }
