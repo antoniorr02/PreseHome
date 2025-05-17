@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import FormEdiccionModal from './FormEdiccionModal';
 import FormEditarReview from './FormEditarReview';
+import ValorarProductoModal from './valorarProductoModal';
 
 const PedidosUser = () => {
     const [loading, setLoading] = useState(true);
@@ -11,6 +12,8 @@ const PedidosUser = () => {
     const [isEditarReview, setEditarReview] = useState(false);
     const [reviewAEditar, setReviewAEditar] = useState(null);
     const [productosMap, setProductosMap] = useState({});
+    const [isValorarModalOpen, setIsValorarModalOpen] = useState(false);
+    const [productoAValorar, setProductoAValorar] = useState(null);
 
     useEffect(() => {
       if (activeSection === 'orders') {
@@ -119,6 +122,64 @@ const PedidosUser = () => {
         }
     };
       
+    // Cancelar pedido completo (solo si está pendiente)
+    const handleCancelarPedido = async (pedidoId) => {
+      try {
+          const response = await fetch(`http://localhost:5000/pedidos/${pedidoId}/cancelar`, {
+              method: 'PUT',
+              credentials: 'include',
+          });
+
+          if (response.ok) {
+              setPedidos(pedidos.map(pedido => 
+                  pedido.pedido_id === pedidoId 
+                      ? { ...pedido, estado: 'cancelado' } 
+                      : pedido
+              ));
+          }
+      } catch (error) {
+          console.error('Error al cancelar el pedido:', error);
+      }
+    };
+
+    // Devolver producto individual
+    const handleDevolverProducto = async (pedidoId, productoId) => {
+      try {
+          const response = await fetch(`http://localhost:5000/pedidos/${pedidoId}/productos/${productoId}/devolver`, {
+              method: 'PUT',
+              credentials: 'include',
+          });
+
+          if (response.ok) {
+              // Actualizar el estado del producto en el pedido
+              setPedidos(pedidos.map(pedido => 
+                  pedido.pedido_id === pedidoId
+                      ? {
+                          ...pedido,
+                          detalle_pedido: pedido.detalle_pedido.map(item =>
+                              item.producto_id === productoId
+                                  ? { ...item, estado: 'devolución' }
+                                  : item
+                          )
+                      }
+                      : pedido
+              ));
+          }
+      } catch (error) {
+          console.error('Error al solicitar devolución:', error);
+      }
+    };
+
+    // Función para verificar si ha pasado el límite de 15 días desde la recepción
+    const puedeDevolver = (fechaRecepcion) => {
+      if (!fechaRecepcion) return false; // Si no hay fecha de recepción, no se puede devolver
+      
+      const fechaRecepcionDate = new Date(fechaRecepcion);
+      const hoy = new Date();
+      const diferenciaDias = (hoy - fechaRecepcionDate) / (1000 * 60 * 60 * 24);
+      return diferenciaDias <= 15;
+    };
+
     const renderSection = () => {
         switch (activeSection) {
           case 'orders':
@@ -128,26 +189,49 @@ const PedidosUser = () => {
                   <p>No tienes pedidos todavía.</p>
                 ) : (
                   pedidos.map((pedido) => {
-                    // Formatear el total a 2 decimales
                     const totalFormateado = parseFloat(pedido.total).toFixed(2);
+                    const fechaPedido = new Date(pedido.fecha_pedido);
+                    const puedeDevolverPedido = puedeDevolver(pedido.fecha_recepcion);
                     
                     return (
                       <div key={pedido.pedido_id} className="border border-gray-400 p-4 rounded-lg">
-                        <div className="flex justify-between items-center mb-4">
-                          <h3 className="font-semibold">Pedido #{pedido.pedido_id}</h3>
-                          <span className="text-sm text-gray-600">
-                            {new Date(pedido.fecha_pedido).toLocaleDateString('es-ES', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </span>
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="font-semibold">Pedido #{pedido.pedido_id}</h3>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <div className="flex items-center gap-4">
+                              <span className="text-sm text-gray-600">
+                                {fechaPedido.toLocaleDateString('es-ES', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                              <span className={`px-3 py-1 rounded-full text-xs ${
+                                pedido.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800' :
+                                pedido.estado === 'enviado' ? 'bg-blue-100 text-blue-800' :
+                                pedido.estado === 'entregado' ? 'bg-green-100 text-green-800' :
+                                pedido.estado === 'cancelado' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {pedido.estado}
+                              </span>
+                            </div>
+                            {/* Botón de cancelar debajo del estado, pero alineado a la derecha */}
+                            {pedido.estado === 'pendiente' && (
+                              <button 
+                                onClick={() => handleCancelarPedido(pedido.pedido_id)}
+                                className="bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded"
+                              >
+                                Cancelar pedido completo
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        
                         {pedido.detalle_pedido.map((detalle) => {
-                          // Asegurar 2 decimales para todos los precios
                           const precioUnitario = parseFloat(detalle.precio_unitario).toFixed(2);
                           const precioConDescuento = detalle.precio_con_descuento 
                             ? parseFloat(detalle.precio_con_descuento).toFixed(2)
@@ -176,10 +260,10 @@ const PedidosUser = () => {
                                 {detalle.descuento_aplicado > 0 ? (
                                   <>
                                     <p className="text-sm text-gray-500 line-through">
-                                      Precio original: ${precioOriginal}
+                                      Precio original: {precioOriginal}€
                                     </p>
                                     <p className="text-sm text-green-600 font-semibold">
-                                      Precio con {detalle.descuento_aplicado}% descuento: ${precioConDescuento}
+                                      Precio con {detalle.descuento_aplicado}% descuento: {precioConDescuento}€
                                     </p>
                                   </>
                                 ) : (
@@ -188,26 +272,76 @@ const PedidosUser = () => {
                                   </p>
                                 )}
                                 
-                                <p className="text-sm text-gray-500">Estado: {pedido.estado}</p>
+                                {/* Estado del producto */}
+                                <p className="text-sm">
+                                  Estado: 
+                                  <span className={`ml-2 ${
+                                    detalle.estado === 'pendiente' ? 'text-yellow-600' :
+                                    detalle.estado === 'enviado' ? 'text-blue-600' :
+                                    detalle.estado === 'entregado' ? 'text-green-600' :
+                                    detalle.estado === 'cancelado' ? 'text-red-600' :
+                                    detalle.estado === 'devolución' ? 'text-purple-600' :
+                                    'text-gray-600'
+                                  }`}>
+                                    {detalle.estado}
+                                  </span>
+                                </p>
                               </div>
 
-                              {/* Acciones */}
-                              <div className="flex flex-col space-y-2">
-                                <button className="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded">
-                                  Devolver
-                                </button>
+                              {/* Acciones - Solo botones de devolución por producto */}
+                              <div className="flex flex-col space-y-2 min-w-[120px]">
+                                {detalle.estado === 'entregado' && (
+                                  <button
+                                    onClick={() => {
+                                      setProductoAValorar(detalle.producto);
+                                      setIsValorarModalOpen(true);
+                                    }}
+                                    className="bg-green-500 hover:bg-green-600 text-white text-sm px-3 py-1 rounded"
+                                  >
+                                    Valorar producto
+                                  </button>
+                                )}
+                                {/* Botón para devolver producto individual */}
+                                {puedeDevolverPedido && 
+                                (detalle.estado === 'entregado') && (
+                                  <button
+                                    onClick={() => handleDevolverProducto(pedido.pedido_id, detalle.producto_id)}
+                                    className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded"
+                                  >
+                                    Devolver producto
+                                  </button>
+                                )}
+                                
+                                {detalle.estado === 'devolución' && (
+                                  <span className="text-sm text-gray-500">Devolución en proceso</span>
+                                )}
+                                
+                                {detalle.estado === 'cancelado' && (
+                                  <span className="text-sm text-gray-500">Producto cancelado</span>
+                                )}
                               </div>
                             </div>
                           );
                         })}
                         
-                        <div className="flex justify-end mt-2 border-t pt-2">
-                          <p className="font-semibold">Total: {totalFormateado}€</p>
+                        <div className="flex justify-between items-center mt-2 border-t pt-2">
+                          <p className="text-sm text-gray-500">
+                            {pedido.fecha_recepcion 
+                              ? (puedeDevolverPedido 
+                                  ? `Plazo de devolución válido (hasta ${new Date(new Date(pedido.fecha_recepcion).getTime() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES')})`
+                                  : "Plazo de devolución expirado")
+                              : "Pedido no recibido aún"}
+                          </p>
                         </div>
                       </div>
                     );
                   })
                 )}
+                <ValorarProductoModal 
+                  isOpen={isValorarModalOpen}
+                  onClose={() => setIsValorarModalOpen(false)}
+                  product={productoAValorar}
+                />
               </div>
             );
             case 'reviews':
@@ -286,15 +420,105 @@ const PedidosUser = () => {
                         </FormEdiccionModal>
                     </div>
                 );       
-          case 'returns':
-            return (
-                <div className="border border-gray-400 p-4 rounded-lg">
-
-                
+            case 'returns':
+              return (
+                <div className="space-y-4">
+                  {pedidos.length === 0 ? (
+                    <p>No tienes pedidos todavía.</p>
+                  ) : (
+                    <>
+                      <h2 className="text-xl font-semibold mb-4">Tus devoluciones</h2>
+                      {pedidos
+                        .filter(pedido => 
+                          pedido.detalle_pedido.some(
+                            detalle => ['devolución', 'devuelto'].includes(detalle.estado)
+                          )
+                        )
+                        .map((pedido) => {
+                          const fechaPedido = new Date(pedido.fecha_pedido);
+                          const fechaRecepcion = pedido.fecha_recepcion ? new Date(pedido.fecha_recepcion) : null;
+                          
+                          return (
+                            <div key={pedido.pedido_id} className="border border-gray-400 p-4 rounded-lg">
+                              <div className="flex justify-between items-start mb-4">
+                                <div>
+                                  <h3 className="font-semibold">Pedido #{pedido.pedido_id}</h3>
+                                  <p className="text-sm text-gray-600">
+                                    Fecha pedido: {fechaPedido.toLocaleDateString('es-ES')}
+                                  </p>
+                                  {fechaRecepcion && (
+                                    <p className="text-sm text-gray-600">
+                                      Fecha recepción: {fechaRecepcion.toLocaleDateString('es-ES')}
+                                    </p>
+                                  )}
+                                </div>
+                                <span className={`px-3 py-1 rounded-full text-xs ${
+                                  pedido.estado === 'devolución' ? 'bg-purple-100 text-purple-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {pedido.estado}
+                                </span>
+                              </div>
+        
+                              {pedido.detalle_pedido
+                                .filter(detalle => ['devolución', 'devuelto'].includes(detalle.estado))
+                                .map((detalle) => {
+                                  const precioUnitario = parseFloat(detalle.precio_unitario).toFixed(2);
+                                  
+                                  return (
+                                    <div key={`${pedido.pedido_id}-${detalle.producto_id}`} className="flex items-start mb-4">
+                                      {/* Imagen */}
+                                      {detalle.producto?.imagenes?.[0]?.url && (
+                                        <img
+                                          src={detalle.producto.imagenes[0].url}
+                                          alt={detalle.producto.nombre}
+                                          className="w-24 h-24 object-cover rounded-lg mr-4"
+                                        />
+                                      )}
+        
+                                      {/* Info producto */}
+                                      <div className="flex-1">
+                                        <h4 className="text-md font-semibold text-gray-900">{detalle.producto.nombre}</h4>
+                                        <p className="text-sm text-gray-700">Cantidad: {detalle.cantidad}</p>
+                                        <p className="text-sm text-gray-700">
+                                          Precio unitario: {precioUnitario}€
+                                        </p>
+                                        
+                                        {/* Estado del producto */}
+                                        <p className="text-sm">
+                                          Estado: 
+                                          <span className={`ml-2 ${
+                                            detalle.estado === 'devolución' ? 'text-purple-600' :
+                                            'text-gray-600'
+                                          }`}>
+                                            {detalle.estado}
+                                          </span>
+                                        </p>
+                                      </div>
+        
+                                      {/* Acciones */}
+                                      <div className="flex flex-col space-y-2 min-w-[120px]">
+                                        {detalle.estado === 'devolución' && (
+                                          <span className="text-sm text-gray-500">Devolución en proceso</span>
+                                        )}
+                                        {detalle.estado === 'devuelto' && (
+                                          <span className="text-sm text-green-600">Producto devuelto</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              }
+                            </div>
+                          );
+                        })
+                      }
+                    </>
+                  )}
                 </div>
-            );
-          default:
-            return <div>Sección no encontrada</div>;
+              );
+            default:
+              return <div>Sección no encontrada</div>;
         }
       };
     
@@ -330,4 +554,3 @@ const PedidosUser = () => {
     };
   
   export default PedidosUser;
-  

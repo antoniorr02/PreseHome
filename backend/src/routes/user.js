@@ -331,7 +331,8 @@ export default async function userRoutes(fastify, options) {
                 create: cliente.carrito.items.map(item => ({
                   producto_id: item.producto_id,
                   cantidad: item.cantidad,
-                  precio_unitario: item.producto.precio
+                  precio_unitario: item.producto.precio,
+                  estado: 'pendiente'
                 }))
               }
             },

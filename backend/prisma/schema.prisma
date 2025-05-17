@@ -77,6 +77,7 @@ model Categoria {
 model Pedido {
   pedido_id       Int      @id @default(autoincrement())
   fecha_pedido    DateTime @default(now())
+  fecha_recepcion DateTime?
   estado          Estado
   total           Decimal
   cliente_id      Int
@@ -88,6 +89,7 @@ enum Estado {
   pendiente
   enviado
   entregado
+  cancelado
 }
 
 model DetallePedido {
@@ -95,9 +97,19 @@ model DetallePedido {
   producto_id     Int
   cantidad        Int
   precio_unitario Decimal
+  estado          EstadoDetalle
   pedido          Pedido   @relation(fields: [pedido_id], references: [pedido_id])
   producto        Producto @relation(fields: [producto_id], references: [producto_id])
   @@id([pedido_id, producto_id])
+}
+
+enum EstadoDetalle {
+  pendiente
+  enviado
+  entregado
+  cancelado
+  devolución
+  devuelto
 }
 
 model Carrito {
