@@ -150,6 +150,8 @@ const PedidosUser = () => {
               credentials: 'include',
           });
 
+          const data = await response.json();
+
           if (response.ok) {
               // Actualizar el estado del producto en el pedido
               setPedidos(pedidos.map(pedido => 
@@ -164,9 +166,15 @@ const PedidosUser = () => {
                       }
                       : pedido
               ));
+              
+              // Mostrar alerta con el mensaje del backend
+              alert(data.mensaje);
+          } else {
+              alert(data.error || 'Error al solicitar devolución');
           }
       } catch (error) {
           console.error('Error al solicitar devolución:', error);
+          alert('Error al conectar con el servidor');
       }
     };
 

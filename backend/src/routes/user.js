@@ -1,6 +1,7 @@
 import { authenticate } from '../plugins/authMiddleware.js';
 import jwt from "jsonwebtoken";
 import {enviarCorreoFacturacion} from '../scripts/emailFactura.js'; 
+import {enviarCorreoDevolucion} from '../scripts/emailDevolucion.js';
 
 export default async function userRoutes(fastify, options) {
     const { prisma } = options
@@ -435,7 +436,130 @@ export default async function userRoutes(fastify, options) {
             console.error('Error al obtener los pedidos del usuario:', err);
             reply.status(500).send({ error: 'Error al obtener datos.' });
         }
-    });    
+    });  
+    
+    fastify.put('/pedidos/:pedidoId/cancelar', { preHandler: [authenticate] }, async (request, reply) => {
+      try {
+          const { pedidoId } = request.params;
+          const token = request.cookies.token;
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          
+          // Verificar que el pedido pertenece al cliente
+          const pedido = await prisma.pedido.findUnique({
+              where: { pedido_id: parseInt(pedidoId) },
+              include: { cliente: true }
+          });
+  
+          if (!pedido || pedido.cliente.email !== decoded.email) {
+              return reply.status(404).send({ error: 'Pedido no encontrado o no autorizado' });
+          }
+  
+          // Solo se puede cancelar si está pendiente
+          if (pedido.estado !== 'pendiente') {
+              return reply.status(400).send({ error: 'Solo se pueden cancelar pedidos pendientes' });
+          }
+  
+          // Actualizar el estado del pedido y sus detalles
+          const updatedPedido = await prisma.pedido.update({
+              where: { pedido_id: parseInt(pedidoId) },
+              data: {
+                  estado: 'cancelado',
+                  detalle_pedido: {
+                      updateMany: {
+                          where: { pedido_id: parseInt(pedidoId) },
+                          data: { estado: 'cancelado' }
+                      }
+                  }
+              },
+              include: {
+                  detalle_pedido: true
+              }
+          });
+  
+          return reply.send({ mensaje: 'Pedido cancelado exitosamente', pedido: updatedPedido });
+      } catch (error) {
+          console.error(error);
+          return reply.status(500).send({ error: 'Error al cancelar el pedido' });
+      }
+  });
+
+  fastify.put('/pedidos/:pedidoId/productos/:productoId/devolver', { preHandler: [authenticate] }, async (request, reply) => {
+    try {
+        const { pedidoId, productoId } = request.params;
+        const token = request.cookies.token;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Verificar que el pedido pertenece al cliente
+        const pedido = await prisma.pedido.findUnique({
+            where: { pedido_id: parseInt(pedidoId) },
+            include: {
+                cliente: true,
+                detalle_pedido: {
+                    where: { producto_id: parseInt(productoId) },
+                    include: { producto: true }
+                }
+            }
+        });
+
+        if (!pedido || pedido.cliente.email !== decoded.email) {
+            return reply.status(404).send({ error: 'Pedido no encontrado o no autorizado' });
+        }
+
+        // Verificar que el producto existe en el pedido
+        if (pedido.detalle_pedido.length === 0) {
+            return reply.status(404).send({ error: 'Producto no encontrado en el pedido' });
+        }
+
+        const detalle = pedido.detalle_pedido[0];
+        
+        // Solo se puede devolver si está entregado y no ha pasado el plazo
+        if (detalle.estado !== 'entregado') {
+            return reply.status(400).send({ error: 'Solo se pueden devolver productos entregados' });
+        }
+
+        // Verificar plazo de devolución (15 días desde fecha_recepcion)
+        if (pedido.fecha_recepcion) {
+            const fechaRecepcion = new Date(pedido.fecha_recepcion);
+            const hoy = new Date();
+            const diferenciaDias = (hoy - fechaRecepcion) / (1000 * 60 * 60 * 24);
+            
+            if (diferenciaDias > 15) {
+                return reply.status(400).send({ error: 'El plazo de devolución ha expirado (15 días desde recepción)' });
+            }
+        } else {
+            return reply.status(400).send({ error: 'El pedido no ha sido marcado como recibido' });
+        }
+
+        // Actualizar el estado del producto en el pedido
+        const updatedDetalle = await prisma.detallePedido.update({
+            where: {
+                pedido_id_producto_id: {
+                    pedido_id: parseInt(pedidoId),
+                    producto_id: parseInt(productoId)
+                }
+            },
+            data: { estado: 'devolución' }
+        });
+
+        // Enviar correo electrónico con instrucciones de devolución
+        await enviarCorreoDevolucion(
+            pedido.cliente.email,
+            {
+                numeroPedido: pedido.pedido_id,
+                producto: detalle.producto.nombre,
+                fechaDevolucion: new Date().toLocaleDateString('es-ES')
+            }
+        );
+
+        return reply.send({ 
+            mensaje: 'Solicitud de devolución registrada. Por favor revise su correo electrónico para continuar con el proceso.', 
+            detalle: updatedDetalle 
+        });
+    } catch (error) {
+        console.error(error);
+        return reply.status(500).send({ error: 'Error al procesar la devolución' });
+    }
+  });
       
-  }
+}
   
