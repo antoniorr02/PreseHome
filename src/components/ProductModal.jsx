@@ -136,37 +136,6 @@ export default function ProductModal({ product, onClose }) {
     }
   };  
 
-  const handleSubmitReview = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/reseñas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          producto_id: product.producto_id,
-          calificacion: rating,
-          comentario: comment
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error("Error al enviar reseña:", data.error || "Error desconocido");
-        return;
-      }
-
-      alert("¡Gracias por tu reseña!");
-      setRating(0);
-      setHoverRating(0);
-      setComment("");
-    } catch (error) {
-      console.error("Error al enviar reseña:", error);
-    }
-  };
-
   const Star = ({ starId, marked }) => (
     <span
       className={`text-3xl cursor-pointer ${marked ? "text-yellow-400" : "text-gray-300"}`}
@@ -262,38 +231,6 @@ export default function ProductModal({ product, onClose }) {
 
         <p className="text-black font-bold text-xl mt-6">Descripción del producto</p>
         <p className="text-gray-700 text-lg mb-4">{product.descripcion}</p>
-
-        <div className="mt-6 border-t pt-4">
-          <h3 className="text-lg font-bold mb-2">Valorar producto</h3>
-
-          <div className="flex space-x-1 mb-4">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                starId={star}
-                marked={hoverRating ? star <= hoverRating : star <= rating}
-              />
-            ))}
-          </div>
-
-          <label className="block mb-2 font-medium">
-            Comentario (opcional):
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="block w-full mt-1 border rounded-md px-2 py-1"
-              rows={3}
-            />
-          </label>
-
-          <button
-            onClick={handleSubmitReview}
-            disabled={rating === 0}
-            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors disabled:bg-gray-300"
-          >
-            Enviar reseña
-          </button>
-        </div>
 
         {valoraciones.length > 0 ? (
           <section className="mt-12">

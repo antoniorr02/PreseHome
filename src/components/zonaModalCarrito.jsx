@@ -5,6 +5,7 @@ import { ShoppingCart, Trash2, CreditCard, Minus, Plus } from "lucide-react";
 export default function CartSidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const openModal = () => {
@@ -28,7 +29,7 @@ export default function CartSidebar() {
   
       if (response.ok) {
         const { rol } = await response.json();
-  
+        setIsLoggedIn(true);
         if (rol === "Cliente" || rol === "Admin") {
           const carritoRes = await fetch("http://localhost:5000/carrito", {
             method: "GET",
@@ -239,7 +240,7 @@ export default function CartSidebar() {
                   Ahorro en descuentos: {totalAhorro.toFixed(2)}€
                 </p>
                 <a
-                  href="/checkout"
+                  href={isLoggedIn ? "/compra" : "/identificate"}
                   className="flex items-center gap-3 justify-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                   onClick={() => setIsOpen(false)}
                 >

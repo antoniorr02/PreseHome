@@ -1,0 +1,24 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+    <section class="flex flex-col items-center min-h-screen p-4">
+        <div class="w-full max-w-md bg-white shadow-xl rounded-2xl text-center p-8 space-y-8">
+            <h1 class="text-4xl font-extrabold text-red-600">¡Pedido confirmado!</h1>
+            
+            <p class="text-lg text-gray-700 max-w-md">
+                Gracias por tu compra. Hemos recibido tu pedido y estamos procesándolo.
+            </p>
+            
+            <p class="text-gray-600 max-w-md">
+                Revisa tu bandeja de correo electrónico para ver los detalles y factura del pedido.
+            </p>
+            
+            <a href="/" 
+               class="mt-8 inline-block bg-red-600 hover:bg-red-700 text-white font-semibold px-8 py-3 rounded-md shadow-md transition duration-300">
+               Volver a la tienda
+            </a>
+        </div>
+    </section>
+</Layout>

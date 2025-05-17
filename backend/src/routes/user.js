@@ -1,5 +1,6 @@
 import { authenticate } from '../plugins/authMiddleware.js';
 import jwt from "jsonwebtoken";
+import {enviarCorreoFacturacion} from '../scripts/emailFactura.js'; 
 
 export default async function userRoutes(fastify, options) {
     const { prisma } = options
@@ -51,6 +52,7 @@ export default async function userRoutes(fastify, options) {
             where: { email },
             include: {
               direcciones: true,
+              tarjetas: true,
             },
           });
       
@@ -67,6 +69,7 @@ export default async function userRoutes(fastify, options) {
             dni: cliente.dni,
             telefono: cliente.telefono,
             direcciones: cliente.direcciones,
+            tarjetas: cliente.tarjetas,
           });
         } catch (error) {
           console.error('Error al obtener los datos del cliente:', error);
@@ -150,6 +153,39 @@ export default async function userRoutes(fastify, options) {
           return reply.status(400).send({ error: 'Error al agregar la dirección', details: error.message });
         }
       });
+
+      fastify.put('/direccion/:direccion_id', { preHandler: [authenticate] }, async (request, reply) => {
+        const { direccion_id } = request.params;
+        const data = request.body;
+      
+        try {
+          // Verificar si la dirección existe
+          const direccionExistente = await prisma.direccion.findUnique({
+            where: { direccion_id: parseInt(direccion_id) }
+          });
+      
+          if (!direccionExistente) {
+            return reply.status(404).send({ error: 'Dirección no encontrada' });
+          }
+      
+          // Actualizar la dirección
+          const direccionActualizada = await prisma.direccion.update({
+            where: { direccion_id: parseInt(direccion_id) },
+            data: {
+              calle: data.calle,
+              numero: data.numero,
+              piso: data.piso,
+              ciudad: data.ciudad,
+              cod_postal: data.cod_postal,
+              pais: data.pais,
+            },
+          });
+      
+          return reply.send(direccionActualizada);
+        } catch (error) {
+          return reply.status(400).send({ error: 'Error al modificar la dirección', details: error.message });
+        }
+      });      
     
       fastify.delete('/direccion/:id', { preHandler: [authenticate] }, async (request, reply) => {
         const { id } = request.params;
@@ -164,5 +200,242 @@ export default async function userRoutes(fastify, options) {
           return reply.status(400).send({ error: 'Error al eliminar la dirección', details: error.message });
         }
       });
+
+      fastify.post('/tarjeta/:cliente_id', { preHandler: [authenticate] }, async (request, reply) => {
+        const { cliente_id } = request.params;
+        const data = request.body;
+      
+        try {
+          const cliente = await prisma.cliente.findUnique({
+            where: { cliente_id: parseInt(cliente_id) },
+          });
+      
+          if (!cliente) {
+            return reply.status(404).send({ error: 'Cliente no encontrado' });
+          }
+      
+          const nuevaTarjeta = await prisma.tarjeta.create({
+            data: {
+              cliente_id: parseInt(cliente_id),
+              numero: data.numero,
+              titular: data.titular,
+              caducidad: data.caducidad,
+              cvv: data.cvv,
+            },
+          });
+      
+          return reply.send(nuevaTarjeta);
+        } catch (error) {
+          console.error(error);
+          return reply.status(400).send({ error: 'Error al agregar la tarjeta', details: error.message });
+        }
+      });
+
+      fastify.put('/tarjeta/:tarjeta_id', { preHandler: [authenticate] }, async (request, reply) => {
+        const { tarjeta_id } = request.params;
+        const data = request.body;
+      
+        try {
+          const tarjeta = await prisma.tarjeta.findUnique({
+            where: { tarjeta_id: parseInt(tarjeta_id) },
+          });
+      
+          if (!tarjeta) {
+            return reply.status(404).send({ error: 'Tarjeta no encontrada' });
+          }
+      
+          const tarjetaActualizada = await prisma.tarjeta.update({
+            where: { tarjeta_id: parseInt(tarjeta_id) },
+            data,
+          });
+      
+          return reply.send(tarjetaActualizada);
+        } catch (error) {
+          console.error(error);
+          return reply.status(400).send({ error: 'Error al actualizar la tarjeta', details: error.message });
+        }
+      });
+      
+      fastify.delete('/tarjeta/:tarjeta_id', { preHandler: [authenticate] }, async (request, reply) => {
+        const { tarjeta_id } = request.params;
+      
+        try {
+          const tarjeta = await prisma.tarjeta.findUnique({
+            where: { tarjeta_id: parseInt(tarjeta_id) },
+          });
+      
+          if (!tarjeta) {
+            return reply.status(404).send({ error: 'Tarjeta no encontrada' });
+          }
+      
+          await prisma.tarjeta.delete({
+            where: { tarjeta_id: parseInt(tarjeta_id) },
+          });
+      
+          return reply.send({ mensaje: 'Tarjeta eliminada correctamente' });
+        } catch (error) {
+          console.error(error);
+          return reply.status(400).send({ error: 'Error al eliminar la tarjeta', details: error.message });
+        }
+      });
+
+      fastify.post('/confirmar-pago', { preHandler: [authenticate] }, async (request, reply) => {
+        const direccion = request.body;
+        try {
+          const token = request.cookies.token;
+          if (!token) {
+            return reply.status(401).send({ error: 'No autorizado' });
+          }
+      
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const email = decoded.email;
+      
+          const cliente = await prisma.cliente.findUnique({
+            where: { email },
+            include: {
+              carrito: {
+                include: {
+                  items: {
+                    include: {
+                      producto: true
+                    }
+                  }
+                }
+              }
+            }
+          });
+          
+          if (!cliente || !cliente.carrito || cliente.carrito.items.length === 0) {
+            return reply.status(400).send({ error: 'Carrito vacío o cliente no encontrado' });
+          }
+      
+          const calcularPrecioConDescuento = (precio, descuento) => {
+            return precio - (precio * descuento / 100);
+          };
+      
+          const total = cliente.carrito.items.reduce((sum, item) => {
+            const precio = item.producto.precio.toNumber();
+            const descuento = item.producto.descuento || 0;
+            const precioConDescuento = calcularPrecioConDescuento(precio, descuento);
+            return sum + (precioConDescuento * item.cantidad);
+          }, 0);
+      
+          const nuevoPedido = await prisma.pedido.create({
+            data: {
+              estado: 'pendiente',
+              total,
+              cliente: {
+                connect: { cliente_id: cliente.cliente_id }
+              },
+              detalle_pedido: {
+                create: cliente.carrito.items.map(item => ({
+                  producto_id: item.producto_id,
+                  cantidad: item.cantidad,
+                  precio_unitario: item.producto.precio,
+                  estado: 'pendiente'
+                }))
+              }
+            },
+            include: {
+              detalle_pedido: {
+                include: {
+                  producto: true
+                }
+              },
+              cliente: true
+            }
+          });
+          
+          await enviarCorreoFacturacion(email, direccion,{
+            pedido: nuevoPedido,
+            total: total,
+          });
+
+          await prisma.itemCarrito.deleteMany({
+            where: {
+              carrito_id: cliente.carrito.carrito_id
+            }
+          });
+      
+          return reply.send({ mensaje: 'Pedido confirmado y factura enviada.', pedido: nuevoPedido });
+        } catch (error) {
+          console.error(error);
+          return reply.status(500).send({ error: 'Error al procesar el pedido', details: error.message });
+        }
+      });
+      
+      fastify.get('/pedidos-cliente', async (request, reply) => {
+        try {
+            const token = request.cookies.token;
+            if (!token) {
+                return reply.status(401).send({ error: "No autenticado" });
+            }
+    
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const email = decoded.email;
+    
+            if (!email) {
+                return reply.status(401).send({ error: 'No autenticado' });
+            }
+    
+            const cliente = await prisma.Cliente.findUnique({
+                where: { email: email }
+            });
+    
+            if (!cliente) {
+                return reply.status(401).send({ error: 'Debes iniciar sesión para ver tus pedidos.' });
+            }
+    
+            const pedidos = await prisma.pedido.findMany({
+                where: { cliente_id: cliente.cliente_id },
+                include: {
+                    detalle_pedido: {
+                        include: {
+                            producto: {
+                                include: {
+                                    imagenes: {
+                                        where: { principal: true },
+                                        take: 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                orderBy: {
+                    fecha_pedido: 'desc'
+                }
+            });       
+            
+            // Calcular precios con descuento para cada detalle
+            const pedidosConDescuentos = pedidos.map(pedido => {
+              const detallesConDescuento = pedido.detalle_pedido.map(detalle => {
+                  const precioOriginal = parseFloat(detalle.precio_unitario);
+                  const descuento = parseFloat(detalle.producto.descuento || 0);
+                  const precioConDescuento = descuento > 0 
+                      ? precioOriginal * (1 - descuento / 100)
+                      : precioOriginal;
+                  
+                  return {
+                      ...detalle,
+                      precio_con_descuento: precioConDescuento.toFixed(2),
+                      precio_original: precioOriginal.toFixed(2),
+                      descuento_aplicado: descuento
+                  };
+              });
+
+              return {
+                      ...pedido,
+                      detalle_pedido: detallesConDescuento
+                  };
+              });
+    
+            return reply.send({ pedidos: pedidosConDescuentos });
+        } catch (err) {
+            console.error('Error al obtener los pedidos del usuario:', err);
+            reply.status(500).send({ error: 'Error al obtener datos.' });
+        }
+    });    
+      
   }
   
