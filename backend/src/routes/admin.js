@@ -1,4 +1,5 @@
-import jwt from "jsonwebtoken";
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { enviarCorreoEstadoCuenta } from "../scripts/emailBaneo.js";
 
 export default async function (fastify, options) {
@@ -133,18 +134,149 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
   }
 });
 
-    //   fastify.delete('/clientes/:id', async (request, reply) => {
-    //     const { id } = request.params
+  fastify.post('/admin', async (request, reply) => {
+    const token = request.cookies.token;
+    if (!token) {
+        return reply.status(401).send({ error: "No autenticado" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const currentAdmin = await prisma.cliente.findUnique({
+        where: { email: decoded.email }
+    });
     
-    //     try {
-    //       await prisma.cliente.delete({
-    //         where: { cliente_id: parseInt(id) },
-    //       })
-    //       return reply.status(204).send()
-    //     } catch (error) {
-    //       return reply.status(400).send({ error: 'Error al eliminar el cliente', details: error.message })
-    //     }
-    //   });
+    if (!currentAdmin || currentAdmin.rol !== 'Admin') {
+        return reply.status(403).send({ error: "Acceso no autorizado" });
+    }
+
+    const { nombre, apellidos, email, dni, password } = request.body;
+
+    try {
+        // Validar DNI
+        const letras = 'TRWAGMYFPDXBNJZSQVHLCKE';
+        if (!/^\d{8}[A-Z]$/i.test(dni)) {
+            return reply.status(400).send({ error: 'DNI no válido: formato incorrecto' });
+        }
+        
+        const numero = parseInt(dni.substr(0, 8));
+        const letra = dni.charAt(8).toUpperCase();
+        const letraEsperada = letras[numero % 23];
+        
+        if (letra !== letraEsperada) {
+            return reply.status(400).send({ error: 'DNI no válido: letra incorrecta' });
+        }
+
+        // Verificar si el email o DNI ya existen
+        const existingUser = await prisma.cliente.findFirst({
+            where: {
+                OR: [
+                    { email },
+                    { dni }
+                ]
+            }
+        });
+
+        if (existingUser) {
+            if (existingUser.email === email) {
+                return reply.status(400).send({ error: 'El correo ya está en uso' });
+            }
+            return reply.status(400).send({ error: 'El DNI ya está registrado' });
+        }
+
+        // Crear el admin
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const token_tmp = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "24h" });
+
+        const nuevoAdmin = await prisma.cliente.create({
+            data: {
+                nombre,
+                apellidos,
+                email,
+                dni,
+                password: hashedPassword,
+                token: token_tmp,
+                rol: 'Admin',
+                confirmado: true,
+                carrito: {
+                    create: {}
+                }
+            },
+            include: {
+                carrito: true
+            }
+        });
+
+        return reply.status(201).send({ 
+            message: 'Administrador creado correctamente',
+            admin: {
+                id: nuevoAdmin.cliente_id,
+                nombre: nuevoAdmin.nombre,
+                email: nuevoAdmin.email,
+                rol: nuevoAdmin.rol
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al crear administrador:', error);
+        return reply.status(500).send({ 
+            error: 'Error al crear el administrador',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+  });
+
+  fastify.delete('/clientes/:id', async (request, reply) => {
+    const token = request.cookies.token;
+    if (!token) {
+        return reply.status(401).send({ error: "No autenticado" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const admin = await prisma.cliente.findUnique({
+        where: { email: decoded.email }
+    });
+    
+    if (!admin || admin.rol != 'Admin') {
+        return reply.status(403).send({ error: "Acceso no autorizado" });
+    }
+
+    const { id } = request.params;
+
+    try {
+        // Primero eliminamos dependencias relacionadas
+        await prisma.pedido.deleteMany({
+            where: { cliente_id: parseInt(id) }
+        });
+
+        await prisma.reseña.deleteMany({
+            where: { cliente_id: parseInt(id) }
+        });
+
+        await prisma.tarjeta.deleteMany({
+            where: { cliente_id: parseInt(id) }
+        });
+
+        await prisma.direccion.deleteMany({
+            where: { cliente_id: parseInt(id) }
+        });
+
+        await prisma.carrito.deleteMany({
+            where: { cliente_id: parseInt(id) }
+        });
+
+        // Finalmente eliminamos el cliente
+        await prisma.cliente.delete({
+            where: { cliente_id: parseInt(id) }
+        });
+
+        return reply.send({ 
+            message: 'Cliente eliminado correctamente'
+        });
+    } catch (error) {
+        console.error('Error al eliminar cliente:', error);
+        return reply.status(500).send({ error: "Error al eliminar el cliente" });
+    }
+  });
 
     //   fastify.post('/categorias', async (request, reply) => {
     //     const { nombre, descripcion } = request.body

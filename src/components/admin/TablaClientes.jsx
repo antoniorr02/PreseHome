@@ -113,6 +113,41 @@ const TablaClientes = () => {
     });
   };
 
+  const handleEliminar = (clienteId) => {
+    confirmAlert({
+      title: 'Confirmar eliminación',
+      message: '¿Estás seguro que deseas eliminar este cliente permanentemente? Esta acción no se puede deshacer.',
+      buttons: [
+        {
+          label: 'Sí, eliminar',
+          onClick: async () => {
+            try {
+              const response = await fetch(`http://localhost:5000/clientes/${clienteId}`, {
+                method: 'DELETE',
+                credentials: 'include',
+              });
+
+              if (!response.ok) {
+                throw new Error('Error al eliminar el cliente');
+              }
+
+              // Refrescar los datos
+              fetchClientes();
+              toast.success('Cliente eliminado correctamente');
+            } catch (error) {
+              console.error('Error:', error);
+              toast.error('Error al eliminar el cliente');
+            }
+          }
+        },
+        {
+          label: 'Cancelar',
+          onClick: () => {}
+        }
+      ]
+    });
+  };
+
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({
@@ -345,6 +380,12 @@ const TablaClientes = () => {
                         Banear
                       </button>
                     )}
+                    <button
+                      onClick={() => handleEliminar(cliente.cliente_id)}
+                      className="text-gray-600 hover:text-gray-900 ml-2"
+                    >
+                      Eliminar
+                    </button>
                   </td>
                 </tr>
               ))
