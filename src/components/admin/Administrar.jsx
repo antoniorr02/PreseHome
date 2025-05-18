@@ -9,40 +9,19 @@ import {
   CartesianGrid,
 } from 'recharts';
 
-const dummyData = {
-  semana: [
-    { dia: 'Lun', ingresos: 400 },
-    { dia: 'Mar', ingresos: 300 },
-    { dia: 'Mié', ingresos: 500 },
-    { dia: 'Jue', ingresos: 700 },
-    { dia: 'Vie', ingresos: 600 },
-    { dia: 'Sáb', ingresos: 900 },
-    { dia: 'Dom', ingresos: 1000 },
-  ],
-  mes: [
-    { semana: '1ª', ingresos: 2000 },
-    { semana: '2ª', ingresos: 2400 },
-    { semana: '3ª', ingresos: 1500 },
-    { semana: '4ª', ingresos: 3000 },
-  ],
-  semestre: [
-    { mes: 'Ene', ingresos: 1200 },
-    { mes: 'Feb', ingresos: 1800 },
-    { mes: 'Mar', ingresos: 2500 },
-    { mes: 'Abr', ingresos: 2100 },
-    { mes: 'May', ingresos: 3200 },
-    { mes: 'Jun', ingresos: 2800 },
-  ],
-};
-
 export default function Administrar() {
-  const [periodo, setPeriodo] = useState('semana');
-  const [datos, setDatos] = useState(dummyData['semana']);
+  const [periodo, setPeriodo] = useState('semana'); // Changed from 'dia' to 'semana'
+  const [datos, setDatos] = useState([]);
 
   useEffect(() => {
-    // METER fetch dinámico aL backend con el periodo
-
-    setDatos(dummyData[periodo]);
+    fetch(`http://localhost:5000/ingresos?periodo=${periodo}`, {
+        credentials: 'include',
+    })
+    .then((res) => res.json())
+    .then((data) => {
+        setDatos(data);
+    })
+    .catch(() => setDatos([]));
   }, [periodo]);
 
   const items = [
@@ -52,6 +31,16 @@ export default function Administrar() {
     { title: 'Gestión de pedidos', link: '/admin/pedidos' },
     { title: 'Gestión de devoluciones', link: '/admin/devoluciones' },
   ];
+
+  // Determine the data key based on the selected period
+  const getDataKey = () => {
+    switch(periodo) {
+      case 'semestre': return 'mes';
+      case 'mes': return 'semana';
+      case 'semana': return 'fecha';
+      default: return 'fecha';
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -65,7 +54,7 @@ export default function Administrar() {
             className="mt-2 sm:mt-0 border rounded-md p-2"
           >
             <option value="semana">Últimos 7 días</option>
-            <option value="mes">Este mes</option>
+            <option value="mes">Este mes (por semanas)</option>
             <option value="semestre">Últimos 6 meses</option>
           </select>
         </div>
@@ -74,7 +63,7 @@ export default function Administrar() {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={datos}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey={periodo === 'semestre' ? 'mes' : periodo === 'mes' ? 'semana' : 'dia'} />
+              <XAxis dataKey={getDataKey()} />
               <YAxis />
               <Tooltip />
               <Line
