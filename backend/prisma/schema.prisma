@@ -18,7 +18,8 @@ model Cliente {
   confirmado      Boolean   @default(false)
   telefono        String?  
   fecha_registro  DateTime  @default(now())
-  rol             Rol       @default(Cliente)  
+  rol             Rol       @default(Cliente) 
+  baneado      Boolean   @default(false) 
   tarjetas        Tarjeta[] 
   reseñas         Reseña[] 
   carrito         Carrito?

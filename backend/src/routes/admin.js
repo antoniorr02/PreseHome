@@ -3,26 +3,128 @@ import jwt from "jsonwebtoken";
 export default async function (fastify, options) {
     const { prisma } = options
 
-    fastify.get('/clientes', async (request, reply) => {
-        const clientes = await prisma.cliente.findMany()
-        return reply.send(clientes)
-      });
-    
+    // Obtener todos los clientes con filtros, paginación y ordenación
+fastify.get('/clientes', async (request, reply) => {
+  // Verificación de autenticación y permisos
+  const token = request.cookies.token;
+  if (!token) {
+    return reply.status(401).send({ error: "No autenticado" });
+  }
 
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const admin = await prisma.cliente.findUnique({
+    where: { email: decoded.email }
+  });
+  
+  if (!admin || admin.rol != 'Admin') {
+    return reply.status(403).send({ error: "Acceso no autorizado" });
+  }
 
+  // Parámetros de consulta
+  const { 
+    page = 1, 
+    limit = 10,
+    search = '',
+    nombre = '',
+    apellidos = '',
+    estado = '',
+    rol = '',
+    sortField = 'fecha_registro',
+    sortOrder = 'desc'
+  } = request.query;
 
-      ////////////////////
+  // Construir condiciones WHERE
+  const where = {
+    AND: [
+      {
+        OR: [
+          { email: { contains: search, mode: 'insensitive' } },
+          { dni: { contains: search, mode: 'insensitive' } }
+        ]
+      },
+      nombre ? { nombre: { contains: nombre, mode: 'insensitive' } } : {},
+      apellidos ? { apellidos: { contains: apellidos, mode: 'insensitive' } } : {},
+      estado ? { baneado: estado === 'baneado' } : {},
+      rol ? { rol } : {}
+    ].filter(cond => Object.keys(cond).length > 0) // Eliminar condiciones vacías
+  };
 
-    //   fastify.get('/clientes/:id', async (request, reply) => {
-    //     const { id } = request.params
-    //     const cliente = await prisma.cliente.findUnique({
-    //       where: { cliente_id: parseInt(id) },
-    //     })
-    //     if (!cliente) {
-    //       return reply.status(404).send({ error: 'Cliente no encontrado' })
-    //     }
-    //     return reply.send(cliente)
-    //   });
+  try {
+    // Obtener el total de clientes para paginación
+    const total = await prisma.cliente.count({ where });
+
+    // Obtener los clientes con paginación y ordenación
+    const clientes = await prisma.cliente.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: parseInt(limit),
+      orderBy: {
+        [sortField]: sortOrder
+      },
+      select: {
+        cliente_id: true,
+        dni: true,
+        nombre: true,
+        apellidos: true,
+        email: true,
+        rol: true,
+        baneado: true,
+        confirmado: true,
+        fecha_registro: true,
+        telefono: true
+      }
+    });
+
+    return reply.send({
+      data: clientes,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error al obtener clientes:', error);
+    return reply.status(500).send({ error: "Error al obtener clientes" });
+  }
+});
+
+// Banear/Desbanear cliente
+fastify.patch('/clientes/:id/ban', async (request, reply) => {
+  // Verificación de autenticación y permisos
+  const token = request.cookies.token;
+  if (!token) {
+    return reply.status(401).send({ error: "No autenticado" });
+  }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const admin = await prisma.cliente.findUnique({
+    where: { email: decoded.email }
+  });
+  
+  if (!admin || admin.rol != 'Admin') {
+    return reply.status(403).send({ error: "Acceso no autorizado" });
+  }
+
+  const { id } = request.params;
+  const { banear } = request.body;
+
+  try {
+    const cliente = await prisma.cliente.update({
+      where: { cliente_id: parseInt(id) },
+      data: { baneado: banear }
+    });
+
+    return reply.send({ 
+      message: `Cliente ${banear ? 'baneado' : 'desbaneado'} correctamente`,
+      cliente 
+    });
+  } catch (error) {
+    console.error('Error al actualizar estado del cliente:', error);
+    return reply.status(500).send({ error: "Error al actualizar estado del cliente" });
+  }
+});
 
     //   fastify.delete('/clientes/:id', async (request, reply) => {
     //     const { id } = request.params
@@ -141,7 +243,7 @@ export default async function (fastify, options) {
 
       fastify.get('/ingresos', async (request, reply) => {
         try {
-            // Verificación de autenticación y permisos (igual que antes)
+            // Verificación de autenticación y permisos
             const token = request.cookies.token;
             if (!token) {
                 return reply.status(401).send({ error: "No autenticado" });

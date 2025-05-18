@@ -25,7 +25,7 @@ export default function Administrar() {
   }, [periodo]);
 
   const items = [
-    { title: 'Gestión de clientes', link: '/admin/clientes' },
+    { title: 'Gestión de clientes', link: '/clientes' },
     { title: 'Gestión de categoría', link: '/admin/categorias' },
     { title: 'Gestión de productos', link: '/admin/productos' },
     { title: 'Gestión de pedidos', link: '/admin/pedidos' },
