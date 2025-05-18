@@ -21,7 +21,6 @@ export default async function (fastify, opts) {
 
   fastify.get('/auth/google/callback', async (req, reply) => {
     const tokenData = await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(req);
-
     const accessToken = tokenData.access_token || tokenData.token?.access_token;
 
     if (!accessToken) {
@@ -30,20 +29,30 @@ export default async function (fastify, opts) {
     }
 
     const userInfo = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-    headers: {
-        Authorization: `Bearer ${accessToken}`
-    }
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        }
     }).then(res => res.json());
 
     const { email, given_name: nombre, family_name: apellidos } = userInfo;
 
     if (!email) {
-      return reply.code(400).send({ error: "No se pudo obtener el email del usuario de Google." });
+        return reply.code(400).send({ error: "No se pudo obtener el email del usuario de Google." });
     }
 
     const user = await prisma.cliente.findUnique({
         where: { email },
     });
+
+    if (user) {
+        if (!user.confirmado) {
+            return reply.status(401).send({ error: 'Usuario no verificado' });
+        }
+
+        if (user.baneado) {
+            return reply.status(401).send({ error: 'Usuario baneado, póngase en contacto con nuestro servicio técnico' });
+        }
+    }
 
     let token;
     if (!user) {

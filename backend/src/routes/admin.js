@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { enviarCorreoEstadoCuenta } from "../scripts/emailBaneo.js";
 
 export default async function (fastify, options) {
     const { prisma } = options
@@ -115,6 +116,12 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
       where: { cliente_id: parseInt(id) },
       data: { baneado: banear }
     });
+
+    // Enviar correo al usuario
+    await enviarCorreoEstadoCuenta(
+      cliente.email, 
+      banear ? 'ban' : 'unban', 
+    );
 
     return reply.send({ 
       message: `Cliente ${banear ? 'baneado' : 'desbaneado'} correctamente`,
