@@ -278,46 +278,90 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
     }
   });
 
-    //   fastify.post('/categorias', async (request, reply) => {
-    //     const { nombre, descripcion } = request.body
-    //     try {
-    //       const nuevaCategoria = await prisma.categoria.create({
-    //         data: {
-    //           nombre,
-    //           descripcion,
-    //         },
-    //       })
-    //       return reply.status(201).send(nuevaCategoria)
-    //     } catch (error) {
-    //       return reply.status(400).send({ error: 'Error al crear la categoría', details: error.message })
-    //     }
-    //   })  
+    // POST /categorias
+    fastify.post('/categorias', async (request, reply) => {
+      const token = request.cookies.token;
+      if (!token) return reply.status(401).send({ error: "No autenticado" });
     
-    //   fastify.put('/categorias/:id', async (request, reply) => {
-    //     const { id } = request.params
-    //     const { nombre, descripcion } = request.body
-    //     try {
-    //       const categoriaActualizada = await prisma.categoria.update({
-    //         where: { categoria_id: parseInt(id) },
-    //         data: { nombre, descripcion }
-    //       })
-    //       return reply.send(categoriaActualizada)
-    //     } catch (error) {
-    //       return reply.status(400).send({ error: 'Error al actualizar la categoría', details: error.message })
-    //     }
-    //   })
-      
-    //   fastify.delete('/categorias/:id', async (request, reply) => {
-    //     const { id } = request.params
-    //     try {
-    //       await prisma.categoria.delete({
-    //         where: { categoria_id: parseInt(id) }
-    //       })
-    //       return reply.status(204).send()
-    //     } catch (error) {
-    //       return reply.status(400).send({ error: 'Error al eliminar la categoría', details: error.message })
-    //     }
-    //   })
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const admin = await prisma.cliente.findUnique({ where: { email: decoded.email } });
+      if (!admin || admin.rol !== 'Admin') {
+        return reply.status(403).send({ error: "Acceso no autorizado" });
+      }
+    
+      try {
+        const { nombre, url_imagen } = request.body;
+    
+        const nuevaCategoria = await prisma.categoria.create({
+          data: {
+            nombre,
+            url_imagen
+          }
+        });
+    
+        return reply.status(201).send(nuevaCategoria);
+      } catch (error) {
+        console.error('Error al crear categoría:', error);
+        return reply.status(500).send({ error: "Error al crear categoría" });
+      }
+    });
+    
+    fastify.put('/categorias/:id', async (request, reply) => {
+      const token = request.cookies.token;
+      if (!token) return reply.status(401).send({ error: "No autenticado" });
+    
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const admin = await prisma.cliente.findUnique({ where: { email: decoded.email } });
+      if (!admin || admin.rol !== 'Admin') {
+        return reply.status(403).send({ error: "Acceso no autorizado" });
+      }
+    
+      try {
+        const { id } = request.params;
+        const { nombre, url_imagen } = request.body;
+    
+        const categoriaActualizada = await prisma.categoria.update({
+          where: { categoria_id: parseInt(id) },
+          data: {
+            nombre,
+            url_imagen
+          }
+        });
+    
+        return reply.send(categoriaActualizada);
+      } catch (error) {
+        console.error('Error al actualizar categoría:', error);
+        return reply.status(500).send({ error: "Error al actualizar categoría" });
+      }
+    });
+
+    fastify.delete('/categorias/:id', async (request, reply) => {
+      const token = request.cookies.token;
+      if (!token) return reply.status(401).send({ error: "No autenticado" });
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const admin = await prisma.cliente.findUnique({ where: { email: decoded.email } });
+      if (!admin || admin.rol !== 'Admin') {
+          return reply.status(403).send({ error: "Acceso no autorizado" });
+      }
+
+      try {
+          const { id } = request.params;
+          
+          await prisma.productoCategoria.deleteMany({
+              where: { categoria_id: parseInt(id) }
+          });
+
+          await prisma.categoria.delete({
+              where: { categoria_id: parseInt(id) }
+          });
+
+          return reply.send({ message: 'Categoría eliminada correctamente' });
+      } catch (error) {
+          console.error('Error al eliminar categoría:', error);
+          return reply.status(500).send({ error: "Error al eliminar categoría" });
+      }
+    });
 
     fastify.post('/productos', async (request, reply) => {
         const { nombre, marca, descripcion, precio, stock, imagenes, categoriaIds } = request.body

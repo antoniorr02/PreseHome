@@ -71,7 +71,7 @@ model ImagenProducto {
 model Categoria {
   categoria_id    Int      @id @default(autoincrement())
   nombre          String
-  descripcion     String?
+  url_imagen      String
   productos       ProductoCategoria[]
 }
 

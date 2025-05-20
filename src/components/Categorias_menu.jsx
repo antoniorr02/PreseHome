@@ -135,7 +135,7 @@ export default function CategoryView() {
                 >
                   <span>{categoria.nombre}</span>
                   <img
-                    src={`/assets/categorias/${categoria.nombre.toLowerCase()}.jpg`}
+                    src={categoria.url_imagen}
                     alt={categoria.nombre}
                     className="w-8 h-8 object-cover rounded"
                   />

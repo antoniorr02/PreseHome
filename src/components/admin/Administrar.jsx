@@ -26,7 +26,7 @@ export default function Administrar() {
 
   const items = [
     { title: 'Gestión de clientes', link: '/clientes' },
-    { title: 'Gestión de categoría', link: '/admin/categorias' },
+    { title: 'Gestión de categoría', link: '/gestion-categorias' },
     { title: 'Gestión de productos', link: '/admin/productos' },
     { title: 'Gestión de pedidos', link: '/admin/pedidos' },
     { title: 'Gestión de devoluciones', link: '/admin/devoluciones' },
