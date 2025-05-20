@@ -597,4 +597,115 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
       return months;
     } 
 
+    fastify.get('/opiniones', async (request, reply) => {
+      const token = request.cookies.token;
+      if (!token) {
+          return reply.status(401).send({ error: "No autenticado" });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const admin = await prisma.cliente.findUnique({
+          where: { email: decoded.email }
+      });
+      
+      if (!admin || admin.rol !== 'Admin') {
+          return reply.status(403).send({ error: "Acceso no autorizado" });
+      }
+
+      const { 
+          page = 1, 
+          limit = 10,
+          search = '',
+          minRating = '',
+          maxRating = ''
+      } = request.query;
+
+      const where = {
+          AND: [
+              search ? {
+                  OR: [
+                      { cliente: { nombre: { contains: search, mode: 'insensitive' } } },
+                      { cliente: { apellidos: { contains: search, mode: 'insensitive' } } },
+                      { cliente: { email: { contains: search, mode: 'insensitive' } } },
+                      { producto: { nombre: { contains: search, mode: 'insensitive' } } },
+                      { comentario: { contains: search, mode: 'insensitive' } }
+                  ]
+              } : {},
+              minRating ? { calificacion: { gte: parseInt(minRating) } } : {},
+              maxRating ? { calificacion: { lte: parseInt(maxRating) } } : {}
+          ].filter(cond => Object.keys(cond).length > 0)
+      };
+
+      try {
+          const total = await prisma.reseña.count({ where });
+
+          const opiniones = await prisma.reseña.findMany({
+              where,
+              include: {
+                  cliente: {
+                      select: {
+                          nombre: true,
+                          apellidos: true,
+                          email: true
+                      }
+                  },
+                  producto: {
+                      select: {
+                          nombre: true,
+                          producto_id: true
+                      }
+                  }
+              },
+              skip: (page - 1) * limit,
+              take: parseInt(limit),
+              orderBy: {
+                  fecha: 'desc'
+              }
+          });
+
+          return reply.send({
+              data: opiniones,
+              pagination: {
+                  total,
+                  page: parseInt(page),
+                  limit: parseInt(limit),
+                  totalPages: Math.ceil(total / limit)
+              }
+          });
+      } catch (error) {
+          console.error('Error al obtener opiniones:', error);
+          return reply.status(500).send({ error: "Error al obtener opiniones" });
+      }
+    });
+
+    fastify.delete('/opiniones/:id', async (request, reply) => {
+      const token = request.cookies.token;
+      if (!token) {
+          return reply.status(401).send({ error: "No autenticado" });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const admin = await prisma.cliente.findUnique({
+          where: { email: decoded.email }
+      });
+      
+      if (!admin || admin.rol !== 'Admin') {
+          return reply.status(403).send({ error: "Acceso no autorizado" });
+      }
+
+      const { id } = request.params;
+
+      try {
+          await prisma.reseña.delete({
+              where: { reseña_id: parseInt(id) }
+          });
+
+          return reply.send({ 
+              message: 'Opinión eliminada correctamente'
+          });
+      } catch (error) {
+          console.error('Error al eliminar opinión:', error);
+          return reply.status(500).send({ error: "Error al eliminar opinión" });
+      }
+    });
   }

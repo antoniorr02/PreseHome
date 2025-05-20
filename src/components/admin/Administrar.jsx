@@ -31,6 +31,7 @@ export default function Administrar() {
     { title: 'Gestión de pedidos', link: '/admin/pedidos' },
     { title: 'Gestión de devoluciones', link: '/admin/devoluciones' },
     { title: 'Añadir nuevo administrador', link: '/nuevo-admin' },
+    { title: 'Gestionar reseñas', link: '/opiniones' },
   ];
 
   // Determine the data key based on the selected period
