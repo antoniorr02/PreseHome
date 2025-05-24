@@ -708,4 +708,301 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
           return reply.status(500).send({ error: "Error al eliminar opinión" });
       }
     });
+
+    // Obtener todos los productos con filtros (para admin)
+    fastify.get('/admin/productos', async (request, reply) => {
+      // Verificar permisos de admin
+      const token = request.cookies.token;
+      if (!token) {
+          return reply.status(401).send({ error: "No autenticado" });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const admin = await prisma.cliente.findUnique({
+          where: { email: decoded.email }
+      });
+      
+      if (!admin || admin.rol !== 'Admin') {
+          return reply.status(403).send({ error: "Acceso no autorizado" });
+      }
+
+      // Parámetros de consulta
+      const { 
+          page = 1, 
+          limit = 10,
+          search = '',
+          minPrice = '',
+          maxPrice = '',
+          category = '',
+          sortField = 'producto_id',
+          sortOrder = 'desc'
+      } = request.query;
+
+      // Construir condiciones WHERE
+      const where = {
+          AND: [
+              search ? {
+                  OR: [
+                      { nombre: { contains: search, mode: 'insensitive' } },
+                      { marca: { contains: search, mode: 'insensitive' } },
+                      { descripcion: { contains: search, mode: 'insensitive' } }
+                  ]
+              } : {},
+              minPrice ? { precio: { gte: parseFloat(minPrice) } } : {},
+              maxPrice ? { precio: { lte: parseFloat(maxPrice) } } : {},
+              category ? { categorias: { some: { categoria_id: parseInt(category) } } } : {}
+          ].filter(cond => Object.keys(cond).length > 0)
+      };
+
+      try {
+          // Obtener el total de productos para paginación
+          const total = await prisma.producto.count({ where });
+
+          // Obtener los productos con relaciones
+          const productos = await prisma.producto.findMany({
+              where,
+              include: {
+                  imagenes: {
+                      take: 1,
+                      orderBy: { principal: 'desc' }
+                  },
+                  categorias: {
+                      include: {
+                          categoria: {
+                              select: {
+                                  nombre: true
+                              }
+                          }
+                      }
+                  }
+              },
+              skip: (page - 1) * limit,
+              take: parseInt(limit),
+              orderBy: {
+                  [sortField]: sortOrder
+              }
+          });
+
+          return reply.send({
+              data: productos,
+              pagination: {
+                  total,
+                  page: parseInt(page),
+                  limit: parseInt(limit),
+                  totalPages: Math.ceil(total / limit)
+              }
+          });
+      } catch (error) {
+          console.error('Error al obtener productos:', error);
+          return reply.status(500).send({ error: "Error al obtener productos" });
+      }
+    });
+
+// Eliminar un producto (admin)
+fastify.delete('/admin/productos/:id', async (request, reply) => {
+  // Verificar permisos de admin
+  const token = request.cookies.token;
+  if (!token) {
+      return reply.status(401).send({ error: "No autenticado" });
   }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const admin = await prisma.cliente.findUnique({
+      where: { email: decoded.email }
+  });
+  
+  if (!admin || admin.rol !== 'Admin') {
+      return reply.status(403).send({ error: "Acceso no autorizado" });
+  }
+
+  const { id } = request.params;
+
+  try {
+      // Primero eliminamos todas las relaciones
+      await prisma.productoCategoria.deleteMany({
+          where: { producto_id: parseInt(id) }
+      });
+
+      await prisma.imagenProducto.deleteMany({
+          where: { producto_id: parseInt(id) }
+      });
+
+      await prisma.reseña.deleteMany({
+          where: { producto_id: parseInt(id) }
+      });
+
+      // Añadir eliminación de detalles de pedido que referencian este producto
+      await prisma.detallePedido.deleteMany({
+          where: { producto_id: parseInt(id) }
+      });
+
+      // Luego eliminamos el producto
+      await prisma.producto.delete({
+          where: { producto_id: parseInt(id) }
+      });
+
+      return reply.send({ 
+          message: 'Producto eliminado correctamente'
+      });
+  } catch (error) {
+      console.error('Error al eliminar producto:', error);
+      return reply.status(500).send({ error: "Error al eliminar producto" });
+  }
+});
+
+    // Crear un nuevo producto
+fastify.post('/admin/productos', async (request, reply) => {
+  // Verificar permisos de admin
+  const token = request.cookies.token;
+  if (!token) {
+    return reply.status(401).send({ error: "No autenticado" });
+  }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const admin = await prisma.cliente.findUnique({
+    where: { email: decoded.email }
+  });
+  
+  if (!admin || admin.rol !== 'Admin') {
+    return reply.status(403).send({ error: "Acceso no autorizado" });
+  }
+
+  const { 
+    nombre, 
+    marca, 
+    descripcion, 
+    precio, 
+    stock, 
+    descuento = 0,
+    categorias = [],
+    imagenes = []
+  } = request.body;
+
+  try {
+    // Validar que haya al menos una imagen marcada como principal
+    if (imagenes.length > 0 && !imagenes.some(img => img.principal)) {
+      return reply.status(400).send({ error: "Debe haber al menos una imagen principal" });
+    }
+
+    // Crear el producto
+    const producto = await prisma.producto.create({
+      data: {
+        nombre,
+        marca,
+        descripcion,
+        precio,
+        stock,
+        descuento,
+        categorias: {
+          create: categorias.map(categoria_id => ({
+            categoria: { connect: { categoria_id } }
+          }))
+        },
+        imagenes: {
+          create: imagenes.map(img => ({
+            url: img.url,
+            principal: img.principal || false
+          }))
+        }
+      },
+      include: {
+        categorias: {
+          include: {
+            categoria: true
+          }
+        },
+        imagenes: true
+      }
+    });
+
+    return reply.send(producto);
+  } catch (error) {
+    console.error('Error al crear producto:', error);
+    return reply.status(500).send({ error: "Error al crear producto" });
+  }
+});
+
+// Actualizar un producto existente
+fastify.put('/admin/productos/:id', async (request, reply) => {
+  // Verificar permisos de admin
+  const token = request.cookies.token;
+  if (!token) {
+    return reply.status(401).send({ error: "No autenticado" });
+  }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const admin = await prisma.cliente.findUnique({
+    where: { email: decoded.email }
+  });
+  
+  if (!admin || admin.rol !== 'Admin') {
+    return reply.status(403).send({ error: "Acceso no autorizado" });
+  }
+
+  const productoId = parseInt(request.params.id);
+  const { 
+    nombre, 
+    marca, 
+    descripcion, 
+    precio, 
+    stock, 
+    descuento = 0,
+    categorias = [],
+    imagenes = []
+  } = request.body;
+
+  try {
+    // Validar que haya al menos una imagen marcada como principal
+    if (imagenes.length > 0 && !imagenes.some(img => img.principal)) {
+      return reply.status(400).send({ error: "Debe haber al menos una imagen principal" });
+    }
+
+    // Primero, eliminar todas las relaciones de categoría existentes
+    await prisma.productoCategoria.deleteMany({
+      where: { producto_id: productoId }
+    });
+
+    // Eliminar todas las imágenes existentes
+    await prisma.imagenProducto.deleteMany({
+      where: { producto_id: productoId }
+    });
+
+    // Actualizar el producto
+    const producto = await prisma.producto.update({
+      where: { producto_id: productoId },
+      data: {
+        nombre,
+        marca,
+        descripcion,
+        precio,
+        stock,
+        descuento,
+        categorias: {
+          create: categorias.map(categoria_id => ({
+            categoria: { connect: { categoria_id } }
+          }))
+        },
+        imagenes: {
+          create: imagenes.map(img => ({
+            url: img.url,
+            principal: img.principal || false
+          }))
+        }
+      },
+      include: {
+        categorias: {
+          include: {
+            categoria: true
+          }
+        },
+        imagenes: true
+      }
+    });
+
+    return reply.send(producto);
+  } catch (error) {
+    console.error('Error al actualizar producto:', error);
+    return reply.status(500).send({ error: "Error al actualizar producto" });
+  }
+});
+}
