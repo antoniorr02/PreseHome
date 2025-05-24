@@ -37,6 +37,7 @@ model Direccion {
   ciudad          String  
   cod_postal      String  
   pais            String  
+  pedidos         Pedido[]
 }
 
 
@@ -82,6 +83,8 @@ model Pedido {
   estado          Estado
   total           Decimal
   cliente_id      Int
+  direccion_id    Int
+  direccion       Direccion @relation(fields: [direccion_id], references: [direccion_id])
   cliente         Cliente  @relation(fields: [cliente_id], references: [cliente_id])
   detalle_pedido  DetallePedido[]
 }

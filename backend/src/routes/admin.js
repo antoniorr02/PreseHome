@@ -1006,7 +1006,6 @@ fastify.put('/admin/productos/:id', async (request, reply) => {
   }
 });
 
-// Obtener todos los pedidos (solo admin)
 fastify.get('/admin/pedidos', async (request, reply) => {
   try {
     const token = request.cookies.token;
@@ -1036,6 +1035,7 @@ fastify.get('/admin/pedidos', async (request, reply) => {
             telefono: true
           }
         },
+        direccion: true, // Añadido para incluir la dirección
         detalle_pedido: {
           include: {
             producto: true

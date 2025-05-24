@@ -281,89 +281,113 @@ export default async function userRoutes(fastify, options) {
       });
 
       fastify.post('/confirmar-pago', { preHandler: [authenticate] }, async (request, reply) => {
-        const direccion = request.body;
+        const direccionData = request.body; // Cambiado de 'direccion' a 'direccionData' para mayor claridad
         try {
-          const token = request.cookies.token;
-          if (!token) {
-            return reply.status(401).send({ error: 'No autorizado' });
-          }
-      
-          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          const email = decoded.email;
-      
-          const cliente = await prisma.cliente.findUnique({
-            where: { email },
-            include: {
-              carrito: {
+            const token = request.cookies.token;
+            if (!token) {
+                return reply.status(401).send({ error: 'No autorizado' });
+            }
+    
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const email = decoded.email;
+    
+            const cliente = await prisma.cliente.findUnique({
+                where: { email },
                 include: {
-                  items: {
-                    include: {
-                      producto: true
+                    carrito: {
+                        include: {
+                            items: {
+                                include: {
+                                    producto: true
+                                }
+                            }
+                        }
                     }
-                  }
                 }
-              }
+            });
+            
+            if (!cliente || !cliente.carrito || cliente.carrito.items.length === 0) {
+                return reply.status(400).send({ error: 'Carrito vacío o cliente no encontrado' });
             }
-          });
-          
-          if (!cliente || !cliente.carrito || cliente.carrito.items.length === 0) {
-            return reply.status(400).send({ error: 'Carrito vacío o cliente no encontrado' });
-          }
-      
-          const calcularPrecioConDescuento = (precio, descuento) => {
-            return precio - (precio * descuento / 100);
-          };
-      
-          const total = cliente.carrito.items.reduce((sum, item) => {
-            const precio = item.producto.precio.toNumber();
-            const descuento = item.producto.descuento || 0;
-            const precioConDescuento = calcularPrecioConDescuento(precio, descuento);
-            return sum + (precioConDescuento * item.cantidad);
-          }, 0);
-      
-          const nuevoPedido = await prisma.pedido.create({
-            data: {
-              estado: 'pendiente',
-              total,
-              cliente: {
-                connect: { cliente_id: cliente.cliente_id }
-              },
-              detalle_pedido: {
-                create: cliente.carrito.items.map(item => ({
-                  producto_id: item.producto_id,
-                  cantidad: item.cantidad,
-                  precio_unitario: item.producto.precio,
-                  estado: 'pendiente'
-                }))
-              }
-            },
-            include: {
-              detalle_pedido: {
+    
+            // Primero, verificar/crear la dirección
+            let direccion;
+            if (direccionData.direccion_id) {
+                // Actualizar dirección existente
+                direccion = await prisma.direccion.update({
+                    where: { direccion_id: direccionData.direccion_id },
+                    data: direccionData
+                });
+            } else {
+                // Crear nueva dirección
+                direccion = await prisma.direccion.create({
+                    data: {
+                        ...direccionData,
+                        cliente: {
+                            connect: { cliente_id: cliente.cliente_id }
+                        }
+                    }
+                });
+            }
+    
+            const calcularPrecioConDescuento = (precio, descuento) => {
+                return precio - (precio * descuento / 100);
+            };
+    
+            const total = cliente.carrito.items.reduce((sum, item) => {
+                const precio = item.producto.precio.toNumber();
+                const descuento = item.producto.descuento || 0;
+                const precioConDescuento = calcularPrecioConDescuento(precio, descuento);
+                return sum + (precioConDescuento * item.cantidad);
+            }, 0);
+    
+            const nuevoPedido = await prisma.pedido.create({
+                data: {
+                    estado: 'pendiente',
+                    total,
+                    cliente: {
+                        connect: { cliente_id: cliente.cliente_id }
+                    },
+                    direccion: {
+                        connect: { direccion_id: direccion.direccion_id }
+                    },
+                    detalle_pedido: {
+                        create: cliente.carrito.items.map(item => ({
+                            producto_id: item.producto_id,
+                            cantidad: item.cantidad,
+                            precio_unitario: item.producto.precio,
+                            estado: 'pendiente'
+                        }))
+                    }
+                },
                 include: {
-                  producto: true
+                    detalle_pedido: {
+                        include: {
+                            producto: true
+                        }
+                    },
+                    cliente: true,
+                    direccion: true
                 }
-              },
-              cliente: true
-            }
-          });
-          
-          await enviarCorreoFacturacion(email, direccion,{
-            pedido: nuevoPedido,
-            total: total,
-          });
-
-          await prisma.itemCarrito.deleteMany({
-            where: {
-              carrito_id: cliente.carrito.carrito_id
-            }
-          });
-      
-          return reply.send({ mensaje: 'Pedido confirmado y factura enviada.', pedido: nuevoPedido });
+            });
+            
+            await enviarCorreoFacturacion(email, direccion, {
+                pedido: nuevoPedido,
+                total: total,
+            });
+    
+            await prisma.itemCarrito.deleteMany({
+                where: {
+                    carrito_id: cliente.carrito.carrito_id
+                }
+            });
+    
+            return reply.send({ mensaje: 'Pedido confirmado y factura enviada.', pedido: nuevoPedido });
         } catch (error) {
-          console.error(error);
-          return reply.status(500).send({ error: 'Error al procesar el pedido', details: error.message });
+            console.error(error);
+            return reply.status(500).send({ error: 'Error al procesar el pedido', details: error.message });
         }
-      });
+    });
       
       fastify.get('/pedidos-cliente', async (request, reply) => {
         try {
