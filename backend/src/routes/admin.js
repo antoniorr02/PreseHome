@@ -1080,29 +1080,44 @@ fastify.put('/admin/pedidos/:id/estado', async (request, reply) => {
           return reply.status(400).send({ error: 'Estado no válido' });
       }
 
-      // Actualizar el pedido
-      const pedidoActualizado = await prisma.pedido.update({
-          where: { pedido_id: parseInt(id) },
-          data: { estado },
-          include: {
-              cliente: {
-                  select: {
-                      nombre: true,
-                      apellidos: true,
-                      email: true
-                  }
-              },
-              detalle_pedido: true
-          }
-      });
+      // Mapeo de estados del pedido a estados del detalle
+      const estadoDetalleMap = {
+        'pendiente': 'pendiente',
+        'enviado': 'enviado',
+        'entregado': 'entregado',
+        'cancelado': 'cancelado'
+      };
+      const nuevoEstadoDetalle = estadoDetalleMap[estado];
 
-      // Si se marca como entregado, establecer fecha de recepción
-      if (estado === 'entregado') {
-          await prisma.pedido.update({
-              where: { pedido_id: parseInt(id) },
-              data: { fecha_recepcion: new Date() }
-          });
-      }
+      // Actualizar el pedido y todos sus detalles en una transacción
+      const [pedidoActualizado] = await prisma.$transaction([
+        prisma.pedido.update({
+          where: { pedido_id: parseInt(id) },
+          data: { 
+            estado,
+            // Si se marca como entregado, establecer fecha de recepción
+            ...(estado === 'entregado' ? { fecha_recepcion: new Date() } : {})
+          },
+          include: {
+            cliente: {
+              select: {
+                nombre: true,
+                apellidos: true,
+                email: true
+              }
+            },
+            detalle_pedido: true
+          }
+        }),
+        prisma.detallePedido.updateMany({
+          where: { 
+            pedido_id: parseInt(id),
+          },
+          data: {
+            estado: nuevoEstadoDetalle
+          }
+        })
+      ]);
 
       return reply.send(pedidoActualizado);
   } catch (error) {

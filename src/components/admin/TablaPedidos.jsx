@@ -47,16 +47,29 @@ const TablaPedidos = () => {
         credentials: 'include',
         body: JSON.stringify({ estado: nuevoEstado }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Error al actualizar el estado del pedido');
       }
-
+  
       const updatedPedido = await response.json();
       
-      setPedidos(pedidos.map(pedido => 
-        pedido.pedido_id === updatedPedido.pedido_id ? updatedPedido : pedido
-      ));
+      // Actualizamos el pedido manteniendo los detalles existentes
+      setPedidos(pedidos.map(pedido => {
+        if (pedido.pedido_id === updatedPedido.pedido_id) {
+          return {
+            ...updatedPedido,
+            // Mantenemos los detalles originales pero actualizamos sus estados
+            detalle_pedido: pedido.detalle_pedido.map(detalle => ({
+              ...detalle,
+              estado: nuevoEstado === 'entregado' ? 'entregado' : 
+                     nuevoEstado === 'enviado' ? 'enviado' :
+                     nuevoEstado === 'cancelado' ? 'cancelado' : detalle.estado
+            }))
+          };
+        }
+        return pedido;
+      }));
     } catch (err) {
       setError(err.message);
     }
