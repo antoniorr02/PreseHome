@@ -562,7 +562,7 @@ export default async function userRoutes(fastify, options) {
                     producto_id: parseInt(productoId)
                 }
             },
-            data: { estado: 'devolución' }
+            data: { estado: 'solicitada' }
         });
 
         // Enviar correo electrónico con instrucciones de devolución

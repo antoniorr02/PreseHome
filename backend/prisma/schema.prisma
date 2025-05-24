@@ -112,6 +112,7 @@ enum EstadoDetalle {
   enviado
   entregado
   cancelado
+  solicitada
   devolución
   devuelto
 }

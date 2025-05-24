@@ -1174,4 +1174,149 @@ fastify.get('/admin/pedidos/:id', async (request, reply) => {
       return reply.status(500).send({ error: 'Error al obtener el pedido', details: error.message });
   }
 });
+
+// Ruta para obtener pedidos con productos en devolución
+fastify.get('/admin/devoluciones', async (request, reply) => {
+  try {
+    const token = request.cookies.token;
+    if (!token) {
+      return reply.status(401).send({ error: "No autenticado" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const admin = await prisma.cliente.findUnique({
+      where: { email: decoded.email }
+    });
+
+    if (!admin || admin.rol !== 'Admin') {
+      return reply.status(403).send({ error: "Acceso no autorizado" });
+    }
+
+    const pedidos = await prisma.pedido.findMany({
+      where: {
+        detalle_pedido: {
+          some: {
+            estado: {
+              in: ['solicitada', 'devolución', 'devuelto', 'cancelado']
+            }
+          }
+        }
+      },
+      include: {
+        cliente: {
+          select: {
+            nombre: true,
+            apellidos: true,
+            email: true,
+            telefono: true
+          }
+        },
+        direccion: true,
+        detalle_pedido: {
+          where: {
+            estado: {
+              in: ['solicitada', 'devolución', 'devuelto', 'cancelado']
+            }
+          },
+          include: {
+            producto: {
+              include: {
+                imagenes: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        fecha_pedido: 'desc'
+      }
+    });
+
+    return reply.send(pedidos);
+  } catch (error) {
+    return reply.status(500).send({ error: 'Error al obtener las devoluciones', details: error.message });
+  }
+});
+
+// Ruta para actualizar el estado de un producto en un pedido
+fastify.put('/admin/devoluciones/:pedidoId/producto/:productoId', async (request, reply) => {
+  try {
+    const token = request.cookies.token;
+    if (!token) {
+      return reply.status(401).send({ error: "No autenticado" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const admin = await prisma.cliente.findUnique({
+      where: { email: decoded.email }
+    });
+
+    if (!admin || admin.rol !== 'Admin') {
+      return reply.status(403).send({ error: "Acceso no autorizado" });
+    }
+
+    const { pedidoId, productoId } = request.params;
+    const { estado } = request.body;
+
+    // Validar que el estado sea válido para devoluciones
+    const estadosPermitidos = ['solicitada', 'devolución', 'devuelto', 'cancelado'];
+    if (!estadosPermitidos.includes(estado)) {
+      return reply.status(400).send({ error: "Estado no válido para devolución" });
+    }
+
+    // Verificar el estado actual del producto
+    const detalleActual = await prisma.detallePedido.findUnique({
+      where: {
+        pedido_id_producto_id: {
+          pedido_id: Number(pedidoId),
+          producto_id: Number(productoId)
+        }
+      }
+    });
+
+    if (!detalleActual) {
+      return reply.status(404).send({ error: "Producto no encontrado en el pedido" });
+    }
+
+    // Validar transiciones de estado permitidas
+    const transicionesValidas = {
+      'solicitada': ['devolución', 'cancelado'],
+      'devolución': ['devuelto', 'cancelado'],
+      'devuelto': [], 
+      'cancelado': [] 
+    };
+
+    if (!transicionesValidas[detalleActual.estado]?.includes(estado)) {
+      return reply.status(400).send({ 
+        error: `Transición no permitida de ${detalleActual.estado} a ${estado}`
+      });
+    }
+
+    // Actualizar el detalle del pedido
+    const detalleActualizado = await prisma.detallePedido.update({
+      where: {
+        pedido_id_producto_id: {
+          pedido_id: Number(pedidoId),
+          producto_id: Number(productoId)
+        }
+      },
+      data: { estado },
+      include: {
+        producto: true,
+        pedido: {
+          include: {
+            cliente: true
+          }
+        }
+      }
+    });
+
+    return reply.send({ 
+      mensaje: 'Estado de devolución actualizado correctamente',
+      detalle: detalleActualizado
+    });
+  } catch (error) {
+    return reply.status(500).send({ error: 'Error al actualizar la devolución', details: error.message });
+  }
+});
 }

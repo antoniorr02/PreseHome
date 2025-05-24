@@ -49,7 +49,7 @@ export default function Administrar() {
     { title: 'Gestión de categoría', link: '/gestion-categorias' },
     { title: 'Gestión de productos', link: '/gestion-productos' },
     { title: 'Gestión de pedidos', link: '/gestion-pedidos' },
-    { title: 'Gestión de devoluciones', link: '/admin/devoluciones' },
+    { title: 'Gestión de devoluciones', link: '/gestion-devoluciones' },
     { title: 'Añadir nuevo administrador', link: '/nuevo-admin' },
     { title: 'Gestionar reseñas', link: '/opiniones' },
     { title: 'Gestor de eventos', link: '/' },
