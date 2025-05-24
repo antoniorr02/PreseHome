@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 
 export default function Administrar() {
-  const [periodo, setPeriodo] = useState('semana'); // Changed from 'dia' to 'semana'
+  const [periodo, setPeriodo] = useState('semana');
   const [datos, setDatos] = useState([]);
 
   useEffect(() => {
@@ -24,6 +24,26 @@ export default function Administrar() {
     .catch(() => setDatos([]));
   }, [periodo]);
 
+  const handleLogout = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch("http://localhost:5000/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        console.log("Sesión cerrada");
+        window.location.href = "/";
+      } else {
+        console.error("Error al cerrar sesión");
+      }
+    } catch (error) {
+      console.error("Error en la petición de logout", error);
+    }
+  };
+
   const items = [
     { title: 'Gestión de clientes', link: '/clientes' },
     { title: 'Gestión de categoría', link: '/gestion-categorias' },
@@ -33,10 +53,10 @@ export default function Administrar() {
     { title: 'Añadir nuevo administrador', link: '/nuevo-admin' },
     { title: 'Gestionar reseñas', link: '/opiniones' },
     { title: 'Gestor de eventos', link: '/' },
-    { title: 'Cerrar sesión', link: '/' },
+    // Eliminamos el link para el ítem de cerrar sesión
+    { title: 'Cerrar sesión', action: handleLogout },
   ];
 
-  // Determine the data key based on the selected period
   const getDataKey = () => {
     switch(periodo) {
       case 'semestre': return 'mes';
@@ -84,13 +104,23 @@ export default function Administrar() {
 
       {/* Cuadros de gestión */}
       {items.map((item) => (
-        <a
-          key={item.title}
-          href={item.link}
-          className="bg-white shadow-lg rounded-2xl p-6 flex items-center justify-center text-xl font-semibold text-center hover:bg-gray-100 transition"
-        >
-          {item.title}
-        </a>
+        item.link ? (
+          <a
+            key={item.title}
+            href={item.link}
+            className="bg-white shadow-lg rounded-2xl p-6 flex items-center justify-center text-xl font-semibold text-center hover:bg-gray-100 transition"
+          >
+            {item.title}
+          </a>
+        ) : (
+          <button
+            key={item.title}
+            onClick={item.action}
+            className="bg-white shadow-lg rounded-2xl p-6 flex items-center justify-center text-xl font-semibold text-center hover:bg-gray-100 transition cursor-pointer"
+          >
+            {item.title}
+          </button>
+        )
       ))}
     </div>
   );
