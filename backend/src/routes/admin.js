@@ -1005,4 +1005,158 @@ fastify.put('/admin/productos/:id', async (request, reply) => {
     return reply.status(500).send({ error: "Error al actualizar producto" });
   }
 });
+
+// Obtener todos los pedidos (solo admin)
+fastify.get('/admin/pedidos', async (request, reply) => {
+  try {
+    const token = request.cookies.token;
+    if (!token) {
+      return reply.status(401).send({ error: "No autenticado" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const admin = await prisma.cliente.findUnique({
+      where: { email: decoded.email }
+    });
+
+    if (!admin || admin.rol !== 'Admin') {
+      return reply.status(403).send({ error: "Acceso no autorizado" });
+    }
+
+    const estado = request.query.estado;
+
+    const pedidos = await prisma.pedido.findMany({
+      where: estado ? { estado } : {},
+      include: {
+        cliente: {
+          select: {
+            nombre: true,
+            apellidos: true,
+            email: true,
+            telefono: true
+          }
+        },
+        detalle_pedido: {
+          include: {
+            producto: true
+          }
+        }
+      },
+      orderBy: {
+        fecha_pedido: 'desc'
+      }
+    });
+
+    return reply.send(pedidos);
+  } catch (error) {
+    return reply.status(500).send({ error: 'Error al obtener los pedidos', details: error.message });
+  }
+});
+
+// Actualizar estado de un pedido (solo admin)
+fastify.put('/admin/pedidos/:id/estado', async (request, reply) => {
+  try {
+      // Verificar autenticación y rol de admin
+      const token = request.cookies.token;
+      if (!token) {
+          return reply.status(401).send({ error: "No autenticado" });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const admin = await prisma.cliente.findUnique({
+          where: { email: decoded.email }
+      });
+      
+      if (!admin || admin.rol != 'Admin') {
+          return reply.status(403).send({ error: "Acceso no autorizado" });
+      }
+
+      const { id } = request.params;
+      const { estado } = request.body;
+
+      // Validar estado
+      const estadosValidos = ['pendiente', 'enviado', 'entregado', 'cancelado'];
+      if (!estadosValidos.includes(estado)) {
+          return reply.status(400).send({ error: 'Estado no válido' });
+      }
+
+      // Actualizar el pedido
+      const pedidoActualizado = await prisma.pedido.update({
+          where: { pedido_id: parseInt(id) },
+          data: { estado },
+          include: {
+              cliente: {
+                  select: {
+                      nombre: true,
+                      apellidos: true,
+                      email: true
+                  }
+              },
+              detalle_pedido: true
+          }
+      });
+
+      // Si se marca como entregado, establecer fecha de recepción
+      if (estado === 'entregado') {
+          await prisma.pedido.update({
+              where: { pedido_id: parseInt(id) },
+              data: { fecha_recepcion: new Date() }
+          });
+      }
+
+      return reply.send(pedidoActualizado);
+  } catch (error) {
+      return reply.status(400).send({ error: 'Error al actualizar el estado del pedido', details: error.message });
+  }
+});
+
+// Obtener detalles de un pedido específico (solo admin)
+fastify.get('/admin/pedidos/:id', async (request, reply) => {
+  try {
+      // Verificar autenticación y rol de admin
+      const token = request.cookies.token;
+      if (!token) {
+          return reply.status(401).send({ error: "No autenticado" });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const admin = await prisma.cliente.findUnique({
+          where: { email: decoded.email }
+      });
+      
+      if (!admin || admin.rol != 'Admin') {
+          return reply.status(403).send({ error: "Acceso no autorizado" });
+      }
+
+      const { id } = request.params;
+
+      const pedido = await prisma.pedido.findUnique({
+          where: { pedido_id: parseInt(id) },
+          include: {
+              cliente: {
+                  select: {
+                      nombre: true,
+                      apellidos: true,
+                      email: true,
+                      direccion: true,
+                      telefono: true
+                  }
+              },
+              detalle_pedido: {
+                  include: {
+                      producto: true
+                  }
+              }
+          }
+      });
+
+      if (!pedido) {
+          return reply.status(404).send({ error: 'Pedido no encontrado' });
+      }
+
+      return reply.send(pedido);
+  } catch (error) {
+      return reply.status(500).send({ error: 'Error al obtener el pedido', details: error.message });
+  }
+});
 }

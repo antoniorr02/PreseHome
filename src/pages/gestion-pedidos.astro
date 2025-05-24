@@ -1,7 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Administrar from '../components/admin/Administrar.jsx';
-import PedidosPendientes from '../components/admin/PedidosPendientes.jsx';
+import TablaPedidos from '../components/admin/TablaPedidos.jsx';
 
 export const prerender = false;
 
@@ -22,9 +21,7 @@ if (rol !== 'Admin') {
 
 <Layout>
   <section class="min-h-screen max-w-7xl mx-auto px-4 py-10">
-    <h1 class="text-4xl font-bold mb-8 text-center">Panel de Administración</h1>
-    <Administrar client:load/>
-    <br>
-    <PedidosPendientes client:load/>
+    <h1 class="text-4xl font-bold mb-8 text-center">Gestión de Pedidos</h1>
+    <TablaPedidos client:load/>
   </section>
 </Layout>

@@ -28,10 +28,12 @@ export default function Administrar() {
     { title: 'Gestión de clientes', link: '/clientes' },
     { title: 'Gestión de categoría', link: '/gestion-categorias' },
     { title: 'Gestión de productos', link: '/gestion-productos' },
-    { title: 'Gestión de pedidos', link: '/admin/pedidos' },
+    { title: 'Gestión de pedidos', link: '/gestion-pedidos' },
     { title: 'Gestión de devoluciones', link: '/admin/devoluciones' },
     { title: 'Añadir nuevo administrador', link: '/nuevo-admin' },
     { title: 'Gestionar reseñas', link: '/opiniones' },
+    { title: 'Gestor de eventos', link: '/' },
+    { title: 'Cerrar sesión', link: '/' },
   ];
 
   // Determine the data key based on the selected period
