@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { enviarCorreoEstadoCuenta } from "../scripts/emailBaneo.js";
 import { emailActualizacionPedido } from '../scripts/emailActualizacionPedido.js';
+import { emailActualizacionDevolucion } from '../scripts/emailActualizacionDevolucion.js'
 
 export default async function (fastify, options) {
     const { prisma } = options
@@ -1323,6 +1324,21 @@ fastify.put('/admin/devoluciones/:pedidoId/producto/:productoId', async (request
         }
       }
     });
+
+    if (detalleActualizado.pedido.cliente.email && estado !== 'solicitada' && estado != 'cancelada') {
+      const datosCorreo = {
+          numeroPedido: pedidoId,
+          estado: estado,
+          nombreCliente: `${detalleActualizado.pedido.cliente.nombre} ${detalleActualizado.pedido.cliente.apellidos}`,
+          nombreProducto: detalleActualizado.producto.nombre,
+          precioProducto: detalleActualizado.precio_unitario
+      };
+      
+      // No esperamos a que termine de enviar el correo para responder
+      emailActualizacionDevolucion(detalleActualizado.pedido.cliente.email, datosCorreo)
+          .catch(error => console.error('Error al enviar correo:', error));
+    }
+
 
     return reply.send({ 
       mensaje: 'Estado de devolución actualizado correctamente',
