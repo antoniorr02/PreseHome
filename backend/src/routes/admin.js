@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { enviarCorreoEstadoCuenta } from "../scripts/emailBaneo.js";
+import { emailActualizacionPedido } from '../scripts/emailActualizacionPedido.js';
 
 export default async function (fastify, options) {
     const { prisma } = options
@@ -1118,6 +1119,18 @@ fastify.put('/admin/pedidos/:id/estado', async (request, reply) => {
           }
         })
       ]);
+
+      if (pedidoActualizado.cliente.email) {
+        const datosCorreo = {
+            numeroPedido: pedidoActualizado.pedido_id,
+            estado: estado,
+            nombreCliente: `${pedidoActualizado.cliente.nombre} ${pedidoActualizado.cliente.apellidos}`
+        };
+        
+        // No esperamos a que termine de enviar el correo para responder
+        emailActualizacionPedido(pedidoActualizado.cliente.email, datosCorreo)
+            .catch(error => console.error('Error al enviar correo:', error));
+      }
 
       return reply.send(pedidoActualizado);
   } catch (error) {

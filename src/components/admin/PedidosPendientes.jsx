@@ -173,7 +173,7 @@ const PedidosPendientes = () => {
                                   <span>
                                     {detalle.producto.nombre} x {detalle.cantidad}
                                   </span>
-                                  <span>{formatCurrency(detalle.precio_unitario)}</span>
+                                  <span>{formatCurrency(detalle.precio_unitario * (100 - detalle.producto.descuento)/100.0)}</span>
                                 </div>
                               ))}
                               <div className="border-t pt-2 font-medium">
