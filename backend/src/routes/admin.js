@@ -1,5 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
+import { join } from 'path';
 import { enviarCorreoEstadoCuenta } from "../scripts/emailBaneo.js";
 import { emailActualizacionPedido } from '../scripts/emailActualizacionPedido.js';
 import { emailActualizacionDevolucion } from '../scripts/emailActualizacionDevolucion.js'
@@ -1346,6 +1348,41 @@ fastify.put('/admin/devoluciones/:pedidoId/producto/:productoId', async (request
     });
   } catch (error) {
     return reply.status(500).send({ error: 'Error al actualizar la devolución', details: error.message });
+  }
+});
+
+fastify.get('/logs', async (request, reply) => {
+  const logFile = join(process.cwd(), 'logs', 'server.log');
+
+  try {
+    const token = request.cookies.token;
+    if (!token) {
+      return reply.status(401).send({ error: "No autenticado" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const admin = await prisma.cliente.findUnique({
+      where: { email: decoded.email }
+    });
+
+    if (!admin || admin.rol !== 'Admin') {
+      return reply.status(403).send({ error: "Acceso no autorizado" });
+    }
+
+    const data = fs.readFileSync(logFile, 'utf-8');
+    const lines = data.trim().split('\n');
+    const logs = lines.map(line => {
+      try {
+        return JSON.parse(line);
+      } catch (err) {
+        return { level: 'error', msg: 'Línea de log no válida', raw: line };
+      }
+    }).reverse();
+
+    return logs;
+  } catch (err) {
+    request.log.error(`Error leyendo logs: ${err.message}`);
+    reply.code(500).send({ error: 'No se pudieron leer los logs' });
   }
 });
 }

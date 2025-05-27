@@ -52,8 +52,7 @@ export default function Administrar() {
     { title: 'Gestión de devoluciones', link: '/gestion-devoluciones' },
     { title: 'Añadir nuevo administrador', link: '/nuevo-admin' },
     { title: 'Gestionar reseñas', link: '/opiniones' },
-    { title: 'Gestor de eventos', link: '/' },
-    // Eliminamos el link para el ítem de cerrar sesión
+    { title: 'Gestor de eventos', link: '/eventos' },
     { title: 'Cerrar sesión', action: handleLogout },
   ];
 
