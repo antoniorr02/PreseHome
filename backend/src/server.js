@@ -7,33 +7,87 @@ import cron from "node-cron";
 import fastifyCookie from "@fastify/cookie";
 import { authenticate } from "./plugins/authMiddleware.js";
 import userRoutes from "./routes/user.js";
-import adminRoutes from "./routes/admin.js"
-import authRoutes from "./routes/auth.js"
+import adminRoutes from "./routes/admin.js";
+import authRoutes from "./routes/auth.js";
 import googleAuthRoutes from "./routes/googleAuth.js";
 import carritoRoutes from "./routes/carrito.js";
 import ratingRoutes from "./routes/rating.js";
+import fs from 'fs';
+import { join } from 'path';
 
 const prisma = new PrismaClient();
-const fastify = Fastify();
-console.log("Fastify instance created.");
+
+// Configuración del transporte de logs para producción
+const logTransports = process.env.NODE_ENV === "development" ? {
+  target: "pino-pretty",
+  options: { 
+    colorize: true, 
+    translateTime: "SYS:yyyy-mm-dd HH:MM:ss",
+    destination: 1, // stdout
+  }
+} : {
+  targets: [
+    {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+        translateTime: "SYS:yyyy-mm-dd HH:MM:ss",
+        destination: 1 // stdout
+      }
+    },
+    {
+      target: 'pino/file',
+      options: {
+        destination: join(process.cwd(), 'logs', 'server.log'),
+        mkdir: true
+      }
+    }
+  ]
+};
+
+// Configuración de Fastify con Pino
+const fastify = Fastify({
+  logger: {
+    level: process.env.NODE_ENV === "development" ? "debug" : "info",
+    transport: logTransports,
+    serializers: {
+      req(request) {
+        return {
+          method: request.method,
+          url: request.url,
+          headers: request.headers
+        };
+      },
+    },
+  },
+});
+
+// Crear directorio de logs si no existe
+if (!fs.existsSync(join(process.cwd(), 'logs'))) {
+  fs.mkdirSync(join(process.cwd(), 'logs'));
+}
+
+fastify.log.info("Instancia de Fastify creada.");
 
 // Configura CORS
 fastify.register(fastifyCors, {
-  origin: "http://localhost:4321", // Cambia según tu frontend
+  origin: "http://localhost:4321",
   credentials: true,
 });
-console.log("CORS configured.");
+fastify.log.info("CORS configurado para http://localhost:4321");
 
 // Configura cookies
 fastify.register(fastifyCookie, {
   secret: process.env.COOKIE_SECRET,
   hook: "onRequest",
 });
+fastify.log.info("Plugin de cookies registrado.");
 
-// Registra el middleware de autenticación
+// Middleware de autenticación
 fastify.decorate("authenticate", authenticate);
+fastify.log.info("Middleware de autenticación registrado.");
 
-// Registra las rutas
+// Registro de rutas
 fastify.register(routes, { prisma });
 fastify.register(contactRoutes);
 fastify.register(userRoutes, { prisma });
@@ -42,9 +96,9 @@ fastify.register(authRoutes, { prisma });
 fastify.register(googleAuthRoutes, { prisma });
 fastify.register(carritoRoutes, { prisma });
 fastify.register(ratingRoutes, { prisma });
-console.log("Routes registered.");
+fastify.log.info("Todas las rutas registradas.");
 
-// Eliminar cuentas no verificadas después de 24 horas
+// Tarea CRON para eliminar cuentas no verificadas
 cron.schedule("0 */12 * * *", async () => {
   try {
     const fechaLimite = new Date();
@@ -57,20 +111,20 @@ cron.schedule("0 */12 * * *", async () => {
       },
     });
 
-    console.log(`Cuentas eliminadas: ${resultado.count}`);
+    fastify.log.info(`${resultado.count} cuentas no verificadas eliminadas.`);
   } catch (error) {
-    console.error("Error eliminando cuentas no verificadas:", error);
+    fastify.log.error(`Error eliminando cuentas no verificadas: ${error.message}`);
   }
 });
+fastify.log.info("Tarea CRON programada (ejecución cada 12 horas).");
 
-console.log("Tarea cron programada para eliminar cuentas no verificadas cada 12 horas.");
-
+// Iniciar servidor
 const start = async () => {
   try {
-    await fastify.listen({ port: 5000 });
-    console.log("Servidor iniciado en http://localhost:5000");
+    await fastify.listen({ port: 5000, host: "0.0.0.0" });
+    fastify.log.info(`Servidor escuchando en http://localhost:5000`);
   } catch (err) {
-    console.error("Error al iniciar el servidor:", err);
+    fastify.log.fatal(`Error al iniciar el servidor: ${err.message}`);
     process.exit(1);
   }
 };
