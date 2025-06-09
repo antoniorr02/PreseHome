@@ -1,0 +1,44 @@
+--- 
+import Layout from '../layouts/Layout.astro';
+---
+<Layout>
+  <section class="flex flex-col items-center min-h-screen p-4">
+    <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
+      <h2 class="text-3xl font-semibold text-center mb-6 text-gray-700">Crea una cuenta</h2>
+
+      <p id="error-message" class="text-red-500 text-sm text-center mb-4 hidden"></p>
+
+      <form id="register-admin" class="flex flex-col gap-4">
+        <input type="text" name="nombre" placeholder="Nombre completo" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        <input type="text" name="apellidos" placeholder="Apellidos" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        <input type="email" name="email" placeholder="Correo electrónico" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        <input type="text" name="dni" placeholder="DNI" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+
+        <div class="relative">
+          <input type="password" id="password" name="password" placeholder="Contraseña" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full pr-10" />
+          <button type="button" id="toggle-password" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /> 
+            </svg>
+          </button>
+        </div>
+
+        <div class="relative">
+          <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirmar contraseña" required class="border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full pr-10" />
+          <button type="button" id="toggle-confirm-password" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+            <svg id="eye-icon-confirmPassword" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /> 
+            </svg>
+          </button>
+        </div>        
+        
+        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium p-3 rounded-full transition duration-300">Registrarse</button>
+      </form>
+    </div>
+  </section>
+
+  <script src="src/scripts/registerAdmin.js" defer></script>
+  <script src="src/scripts/verOcultarPassword.js" defer></script>
+</Layout>

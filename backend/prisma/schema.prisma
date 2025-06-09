@@ -18,7 +18,8 @@ model Cliente {
   confirmado      Boolean   @default(false)
   telefono        String?  
   fecha_registro  DateTime  @default(now())
-  rol             Rol       @default(Cliente)  
+  rol             Rol       @default(Cliente) 
+  baneado      Boolean   @default(false) 
   tarjetas        Tarjeta[] 
   reseñas         Reseña[] 
   carrito         Carrito?
@@ -36,6 +37,7 @@ model Direccion {
   ciudad          String  
   cod_postal      String  
   pais            String  
+  pedidos         Pedido[]
 }
 
 
@@ -70,7 +72,7 @@ model ImagenProducto {
 model Categoria {
   categoria_id    Int      @id @default(autoincrement())
   nombre          String
-  descripcion     String?
+  url_imagen      String
   productos       ProductoCategoria[]
 }
 
@@ -81,6 +83,8 @@ model Pedido {
   estado          Estado
   total           Decimal
   cliente_id      Int
+  direccion_id    Int
+  direccion       Direccion @relation(fields: [direccion_id], references: [direccion_id])
   cliente         Cliente  @relation(fields: [cliente_id], references: [cliente_id])
   detalle_pedido  DetallePedido[]
 }
@@ -108,6 +112,7 @@ enum EstadoDetalle {
   enviado
   entregado
   cancelado
+  solicitada
   devolución
   devuelto
 }

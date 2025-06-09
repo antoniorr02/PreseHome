@@ -160,7 +160,7 @@ const PedidosUser = () => {
                           ...pedido,
                           detalle_pedido: pedido.detalle_pedido.map(item =>
                               item.producto_id === productoId
-                                  ? { ...item, estado: 'devolución' }
+                                  ? { ...item, estado: 'solicitada' }
                                   : item
                           )
                       }

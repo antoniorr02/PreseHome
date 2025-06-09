@@ -204,6 +204,10 @@ export default async function (fastify, options) {
               if (!user.confirmado) {
                 return reply.status(401).send({ error: 'Usuario no verificado' });
               }
+
+              if (user.baneado) {
+                return reply.status(401).send({ error: 'Usuario baneado, póngase en contacto con nuestro servicio técnico' });
+              }
         
               const match = await bcrypt.compare(password, user.password);
         

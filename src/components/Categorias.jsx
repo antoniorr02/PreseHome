@@ -41,12 +41,12 @@ export default function Categorias() {
                 onClick={() => handleCategoryClick(categoria.categoria_id)}
                 className="product-card block transition-all duration-300 filter hover:brightness-75 cursor-pointer"
               >
-                <img 
-                  src={`/assets/categorias/${categoria.nombre.toLowerCase()}.jpg`} 
-                  alt={categoria.nombre} 
-                  className="w-full h-48 object-cover rounded-lg shadow-lg" 
+                <img
+                    src={categoria.url_imagen}
+                    alt={categoria.nombre}
+                    className="w-full h-48 object-cover rounded-lg shadow-lg" 
                 />
-                <h3 className="text-xl text-center mt-4">{categoria.nombre}</h3>
+              <h3 className="text-xl text-center mt-4">{categoria.nombre}</h3>
               </div>
             ))
           ) : (
