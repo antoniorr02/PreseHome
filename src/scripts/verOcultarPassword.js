@@ -2,7 +2,6 @@ document.getElementById('toggle-password').addEventListener('click', function() 
   const passwordField = document.getElementById('password');
   const eyeIcon = document.getElementById('eye-icon');
   
-  // Cambiar el comportamiento del ojo: ahora si la contraseña está visible, la ocultamos
   if (passwordField.type === 'text') {
     passwordField.type = 'password';
     eyeIcon.innerHTML = `
@@ -21,7 +20,6 @@ document.getElementById('toggle-confirm-password').addEventListener('click', fun
   const passwordField = document.getElementById('confirmPassword');
   const eyeIcon = document.getElementById('eye-icon-confirmPassword');
   
-  // Cambiar el comportamiento del ojo: ahora si la contraseña está visible, la ocultamos
   if (passwordField.type === 'text') {
     passwordField.type = 'password';
     eyeIcon.innerHTML = `

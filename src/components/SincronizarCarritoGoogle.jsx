@@ -38,5 +38,5 @@ export default function SincronizarCarritoGoogle() {
     sincronizarCarrito();
   }, []);
 
-  return null; // No renderiza nada visible
+  return null;
 }

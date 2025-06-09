@@ -9,9 +9,7 @@ import { emailActualizacionDevolucion } from '../scripts/emailActualizacionDevol
 export default async function (fastify, options) {
     const { prisma } = options
 
-    // Obtener todos los clientes con filtros, paginación y ordenación
 fastify.get('/clientes', async (request, reply) => {
-  // Verificación de autenticación y permisos
   const token = request.cookies.token;
   if (!token) {
     return reply.status(401).send({ error: "No autenticado" });
@@ -26,7 +24,6 @@ fastify.get('/clientes', async (request, reply) => {
     return reply.status(403).send({ error: "Acceso no autorizado" });
   }
 
-  // Parámetros de consulta
   const { 
     page = 1, 
     limit = 10,
@@ -39,7 +36,6 @@ fastify.get('/clientes', async (request, reply) => {
     sortOrder = 'desc'
   } = request.query;
 
-  // Construir condiciones WHERE
   const where = {
     AND: [
       {
@@ -52,14 +48,12 @@ fastify.get('/clientes', async (request, reply) => {
       apellidos ? { apellidos: { contains: apellidos, mode: 'insensitive' } } : {},
       estado ? { baneado: estado === 'baneado' } : {},
       rol ? { rol } : {}
-    ].filter(cond => Object.keys(cond).length > 0) // Eliminar condiciones vacías
+    ].filter(cond => Object.keys(cond).length > 0) 
   };
 
   try {
-    // Obtener el total de clientes para paginación
     const total = await prisma.cliente.count({ where });
 
-    // Obtener los clientes con paginación y ordenación
     const clientes = await prisma.cliente.findMany({
       where,
       skip: (page - 1) * limit,
@@ -96,9 +90,7 @@ fastify.get('/clientes', async (request, reply) => {
   }
 });
 
-// Banear/Desbanear cliente
 fastify.patch('/clientes/:id/ban', async (request, reply) => {
-  // Verificación de autenticación y permisos
   const token = request.cookies.token;
   if (!token) {
     return reply.status(401).send({ error: "No autenticado" });
@@ -122,7 +114,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
       data: { baneado: banear }
     });
 
-    // Enviar correo al usuario
     await enviarCorreoEstadoCuenta(
       cliente.email, 
       banear ? 'ban' : 'unban', 
@@ -156,7 +147,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
     const { nombre, apellidos, email, dni, password } = request.body;
 
     try {
-        // Validar DNI
         const letras = 'TRWAGMYFPDXBNJZSQVHLCKE';
         if (!/^\d{8}[A-Z]$/i.test(dni)) {
             return reply.status(400).send({ error: 'DNI no válido: formato incorrecto' });
@@ -170,7 +160,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
             return reply.status(400).send({ error: 'DNI no válido: letra incorrecta' });
         }
 
-        // Verificar si el email o DNI ya existen
         const existingUser = await prisma.cliente.findFirst({
             where: {
                 OR: [
@@ -187,7 +176,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
             return reply.status(400).send({ error: 'El DNI ya está registrado' });
         }
 
-        // Crear el admin
         const hashedPassword = await bcrypt.hash(password, 10);
         const token_tmp = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "24h" });
 
@@ -247,7 +235,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
     const { id } = request.params;
 
     try {
-        // Primero eliminamos dependencias relacionadas
         await prisma.pedido.deleteMany({
             where: { cliente_id: parseInt(id) }
         });
@@ -268,7 +255,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
             where: { cliente_id: parseInt(id) }
         });
 
-        // Finalmente eliminamos el cliente
         await prisma.cliente.delete({
             where: { cliente_id: parseInt(id) }
         });
@@ -282,7 +268,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
     }
   });
 
-    // POST /categorias
     fastify.post('/categorias', async (request, reply) => {
       const token = request.cookies.token;
       if (!token) return reply.status(401).send({ error: "No autenticado" });
@@ -379,7 +364,7 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
               precio,
               stock,
               imagenes: {
-                create: imagenes, // Array de { principal, url }
+                create: imagenes, 
               },
               categorias: {
                 create: categoriaIds.map((categoria_id) => ({ categoria_id })),
@@ -430,7 +415,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
 
       fastify.get('/ingresos', async (request, reply) => {
         try {
-            // Verificación de autenticación y permisos
             const token = request.cookies.token;
             if (!token) {
                 return reply.status(401).send({ error: "No autenticado" });
@@ -451,7 +435,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
                 return reply.status(400).send({ error: "Parámetro 'periodo' inválido" });
             }
     
-            // Obtener pedidos entregados
             const orders = await prisma.pedido.findMany({
                 where: {
                     estado: {
@@ -479,7 +462,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
                 }
             });
     
-            // Procesar los datos según el período
             let result;
             if (periodo === 'semana') {
                 result = processWeekData(orders);
@@ -496,7 +478,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
         }
     });
     
-    // Funciones auxiliares
     function getStartDate(periodo) {
         const now = new Date();
         switch (periodo) {
@@ -515,11 +496,10 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
       const now = new Date();
       const dates = [];
   
-      // Generar los últimos 7 días con formato YYYY-MM-DD
       for (let i = 6; i >= 0; i--) {
           const date = new Date(now);
           date.setDate(now.getDate() - i);
-          const iso = date.toISOString().slice(0, 10); // yyyy-mm-dd
+          const iso = date.toISOString().slice(0, 10); 
           dates.push({ fecha: iso, ingresos: 0 });
       }
   
@@ -713,9 +693,7 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
       }
     });
 
-    // Obtener todos los productos con filtros (para admin)
     fastify.get('/admin/productos', async (request, reply) => {
-      // Verificar permisos de admin
       const token = request.cookies.token;
       if (!token) {
           return reply.status(401).send({ error: "No autenticado" });
@@ -730,7 +708,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
           return reply.status(403).send({ error: "Acceso no autorizado" });
       }
 
-      // Parámetros de consulta
       const { 
           page = 1, 
           limit = 10,
@@ -742,7 +719,6 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
           sortOrder = 'desc'
       } = request.query;
 
-      // Construir condiciones WHERE
       const where = {
           AND: [
               search ? {
@@ -759,10 +735,8 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
       };
 
       try {
-          // Obtener el total de productos para paginación
           const total = await prisma.producto.count({ where });
 
-          // Obtener los productos con relaciones
           const productos = await prisma.producto.findMany({
               where,
               include: {
@@ -802,9 +776,7 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
       }
     });
 
-// Eliminar un producto (admin)
 fastify.delete('/admin/productos/:id', async (request, reply) => {
-  // Verificar permisos de admin
   const token = request.cookies.token;
   if (!token) {
       return reply.status(401).send({ error: "No autenticado" });
@@ -822,7 +794,6 @@ fastify.delete('/admin/productos/:id', async (request, reply) => {
   const { id } = request.params;
 
   try {
-      // Primero eliminamos todas las relaciones
       await prisma.productoCategoria.deleteMany({
           where: { producto_id: parseInt(id) }
       });
@@ -835,12 +806,10 @@ fastify.delete('/admin/productos/:id', async (request, reply) => {
           where: { producto_id: parseInt(id) }
       });
 
-      // Añadir eliminación de detalles de pedido que referencian este producto
       await prisma.detallePedido.deleteMany({
           where: { producto_id: parseInt(id) }
       });
 
-      // Luego eliminamos el producto
       await prisma.producto.delete({
           where: { producto_id: parseInt(id) }
       });
@@ -854,9 +823,7 @@ fastify.delete('/admin/productos/:id', async (request, reply) => {
   }
 });
 
-    // Crear un nuevo producto
 fastify.post('/admin/productos', async (request, reply) => {
-  // Verificar permisos de admin
   const token = request.cookies.token;
   if (!token) {
     return reply.status(401).send({ error: "No autenticado" });
@@ -883,12 +850,10 @@ fastify.post('/admin/productos', async (request, reply) => {
   } = request.body;
 
   try {
-    // Validar que haya al menos una imagen marcada como principal
     if (imagenes.length > 0 && !imagenes.some(img => img.principal)) {
       return reply.status(400).send({ error: "Debe haber al menos una imagen principal" });
     }
 
-    // Crear el producto
     const producto = await prisma.producto.create({
       data: {
         nombre,
@@ -926,9 +891,7 @@ fastify.post('/admin/productos', async (request, reply) => {
   }
 });
 
-// Actualizar un producto existente
 fastify.put('/admin/productos/:id', async (request, reply) => {
-  // Verificar permisos de admin
   const token = request.cookies.token;
   if (!token) {
     return reply.status(401).send({ error: "No autenticado" });
@@ -956,22 +919,18 @@ fastify.put('/admin/productos/:id', async (request, reply) => {
   } = request.body;
 
   try {
-    // Validar que haya al menos una imagen marcada como principal
     if (imagenes.length > 0 && !imagenes.some(img => img.principal)) {
       return reply.status(400).send({ error: "Debe haber al menos una imagen principal" });
     }
 
-    // Primero, eliminar todas las relaciones de categoría existentes
     await prisma.productoCategoria.deleteMany({
       where: { producto_id: productoId }
     });
 
-    // Eliminar todas las imágenes existentes
     await prisma.imagenProducto.deleteMany({
       where: { producto_id: productoId }
     });
 
-    // Actualizar el producto
     const producto = await prisma.producto.update({
       where: { producto_id: productoId },
       data: {
@@ -1039,7 +998,7 @@ fastify.get('/admin/pedidos', async (request, reply) => {
             telefono: true
           }
         },
-        direccion: true, // Añadido para incluir la dirección
+        direccion: true,
         detalle_pedido: {
           include: {
             producto: true
@@ -1057,10 +1016,8 @@ fastify.get('/admin/pedidos', async (request, reply) => {
   }
 });
 
-// Actualizar estado de un pedido (solo admin)
 fastify.put('/admin/pedidos/:id/estado', async (request, reply) => {
   try {
-      // Verificar autenticación y rol de admin
       const token = request.cookies.token;
       if (!token) {
           return reply.status(401).send({ error: "No autenticado" });
@@ -1078,13 +1035,11 @@ fastify.put('/admin/pedidos/:id/estado', async (request, reply) => {
       const { id } = request.params;
       const { estado } = request.body;
 
-      // Validar estado
       const estadosValidos = ['pendiente', 'enviado', 'entregado', 'cancelado'];
       if (!estadosValidos.includes(estado)) {
           return reply.status(400).send({ error: 'Estado no válido' });
       }
 
-      // Mapeo de estados del pedido a estados del detalle
       const estadoDetalleMap = {
         'pendiente': 'pendiente',
         'enviado': 'enviado',
@@ -1093,13 +1048,11 @@ fastify.put('/admin/pedidos/:id/estado', async (request, reply) => {
       };
       const nuevoEstadoDetalle = estadoDetalleMap[estado];
 
-      // Actualizar el pedido y todos sus detalles en una transacción
       const [pedidoActualizado] = await prisma.$transaction([
         prisma.pedido.update({
           where: { pedido_id: parseInt(id) },
           data: { 
             estado,
-            // Si se marca como entregado, establecer fecha de recepción
             ...(estado === 'entregado' ? { fecha_recepcion: new Date() } : {})
           },
           include: {
@@ -1130,7 +1083,6 @@ fastify.put('/admin/pedidos/:id/estado', async (request, reply) => {
             nombreCliente: `${pedidoActualizado.cliente.nombre} ${pedidoActualizado.cliente.apellidos}`
         };
         
-        // No esperamos a que termine de enviar el correo para responder
         emailActualizacionPedido(pedidoActualizado.cliente.email, datosCorreo)
             .catch(error => console.error('Error al enviar correo:', error));
       }
@@ -1141,10 +1093,8 @@ fastify.put('/admin/pedidos/:id/estado', async (request, reply) => {
   }
 });
 
-// Obtener detalles de un pedido específico (solo admin)
 fastify.get('/admin/pedidos/:id', async (request, reply) => {
   try {
-      // Verificar autenticación y rol de admin
       const token = request.cookies.token;
       if (!token) {
           return reply.status(401).send({ error: "No autenticado" });
@@ -1191,7 +1141,6 @@ fastify.get('/admin/pedidos/:id', async (request, reply) => {
   }
 });
 
-// Ruta para obtener pedidos con productos en devolución
 fastify.get('/admin/devoluciones', async (request, reply) => {
   try {
     const token = request.cookies.token;
@@ -1254,7 +1203,6 @@ fastify.get('/admin/devoluciones', async (request, reply) => {
   }
 });
 
-// Ruta para actualizar el estado de un producto en un pedido
 fastify.put('/admin/devoluciones/:pedidoId/producto/:productoId', async (request, reply) => {
   try {
     const token = request.cookies.token;
@@ -1274,13 +1222,11 @@ fastify.put('/admin/devoluciones/:pedidoId/producto/:productoId', async (request
     const { pedidoId, productoId } = request.params;
     const { estado } = request.body;
 
-    // Validar que el estado sea válido para devoluciones
     const estadosPermitidos = ['solicitada', 'devolución', 'devuelto', 'cancelado'];
     if (!estadosPermitidos.includes(estado)) {
       return reply.status(400).send({ error: "Estado no válido para devolución" });
     }
 
-    // Verificar el estado actual del producto
     const detalleActual = await prisma.detallePedido.findUnique({
       where: {
         pedido_id_producto_id: {
@@ -1294,7 +1240,6 @@ fastify.put('/admin/devoluciones/:pedidoId/producto/:productoId', async (request
       return reply.status(404).send({ error: "Producto no encontrado en el pedido" });
     }
 
-    // Validar transiciones de estado permitidas
     const transicionesValidas = {
       'solicitada': ['devolución', 'cancelado'],
       'devolución': ['devuelto', 'cancelado'],
@@ -1308,7 +1253,6 @@ fastify.put('/admin/devoluciones/:pedidoId/producto/:productoId', async (request
       });
     }
 
-    // Actualizar el detalle del pedido
     const detalleActualizado = await prisma.detallePedido.update({
       where: {
         pedido_id_producto_id: {
@@ -1336,7 +1280,6 @@ fastify.put('/admin/devoluciones/:pedidoId/producto/:productoId', async (request
           precioProducto: detalleActualizado.precio_unitario
       };
       
-      // No esperamos a que termine de enviar el correo para responder
       emailActualizacionDevolucion(detalleActualizado.pedido.cliente.email, datosCorreo)
           .catch(error => console.error('Error al enviar correo:', error));
     }

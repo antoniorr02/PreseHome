@@ -6,10 +6,9 @@ const Productos = () => {
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // Llamada para obtener los productos cuando el componente se monte
   useEffect(() => {
     fetchProductos();
-  }, []);  // El array vacío asegura que se ejecute solo una vez al montar el componente
+  }, []); 
 
   const fetchProductos = async () => {
     setLoading(true);
@@ -81,7 +80,6 @@ const Productos = () => {
     }
   };
 
-  // Filtrar productos con descuento
   const productosConDescuento = productos.filter(
     (producto) => producto.descuento && producto.descuento > 0
   );

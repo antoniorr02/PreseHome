@@ -37,19 +37,16 @@ const ConfirmarData = () => {
   const validarCampos = () => {
     const nuevosErrores = {};
     
-    // Validar datos del cliente
     if (!cliente?.nombre?.trim()) nuevosErrores.nombre = 'Nombre es obligatorio';
     if (!cliente?.apellidos?.trim()) nuevosErrores.apellidos = 'Apellidos son obligatorios';
     if (!cliente?.telefono?.trim()) nuevosErrores.telefono = 'Teléfono es obligatorio';
     if (!cliente?.email?.trim()) nuevosErrores.email = 'Email es obligatorio';
     
-    // Validar dirección
     if (!direccionSeleccionada?.calle?.trim()) nuevosErrores.calle = 'Calle es obligatoria';
     if (!direccionSeleccionada?.ciudad?.trim()) nuevosErrores.ciudad = 'Ciudad es obligatoria';
     if (!direccionSeleccionada?.cod_postal?.trim()) nuevosErrores.cod_postal = 'Código postal es obligatorio';
     if (!direccionSeleccionada?.pais?.trim()) nuevosErrores.pais = 'País es obligatorio';
     
-    // Validar tarjeta (solo si hay tarjeta seleccionada)
     if (tarjetaSeleccionada) {
       if (!tarjetaSeleccionada?.numero?.trim()) nuevosErrores.numeroTarjeta = 'Número de tarjeta es obligatorio';
       if (!tarjetaSeleccionada?.titular?.trim()) nuevosErrores.titularTarjeta = 'Titular es obligatorio';
@@ -57,7 +54,6 @@ const ConfirmarData = () => {
       if (!tarjetaSeleccionada?.cvv?.trim()) nuevosErrores.cvv = 'CVV es obligatorio';
     }
     
-    // Validar checkbox de políticas
     if (!aceptaPoliticas) nuevosErrores.politicas = 'Debes aceptar las políticas';
     
     setErrores(nuevosErrores);
@@ -177,7 +173,6 @@ const ConfirmarData = () => {
         console.log("Tarjeta guardada:", tarjetaSeleccionada);
       }
 
-      // Confirmar pedido y generar factura
       const resPedido = await fetch(`http://localhost:5000/confirmar-pago`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -204,7 +199,6 @@ const ConfirmarData = () => {
     <form onSubmit={handleSubmit} className="max-w-xl mx-auto bg-white shadow-lg rounded-2xl p-6">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">Dirección de envío</h2>
 
-      {/* Selector de dirección */}
       <label className="block mb-2 text-sm font-medium text-gray-700">Selecciona una dirección</label>
       <select
         className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
@@ -218,7 +212,6 @@ const ConfirmarData = () => {
         ))}
       </select>
 
-      {/* Campos de dirección */}
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Calle*</label>
@@ -297,7 +290,6 @@ const ConfirmarData = () => {
         Añadir nueva dirección
       </button>
 
-      {/* Datos del cliente */}
       <div className="mt-8 space-y-4 border-t pt-6">
         <h3 className="text-xl font-semibold text-gray-800">Datos del cliente</h3>
         
@@ -363,7 +355,6 @@ const ConfirmarData = () => {
         </div>
       </div>
 
-      {/* Tarjeta de crédito */}
       <div className="mt-8 space-y-4 border-t pt-6">
         <h3 className="text-xl font-semibold text-gray-800">Tarjeta de crédito</h3>
 
@@ -435,7 +426,6 @@ const ConfirmarData = () => {
         </button>
       </div>
 
-      {/* Checkbox de políticas */}
       <div className="mt-6 border-t pt-4">
         <div className="flex items-start">
           <div className="flex items-center h-5">

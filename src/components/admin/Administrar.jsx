@@ -67,7 +67,6 @@ export default function Administrar() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {/* Cuadro de Ingresos */}
       <div className="bg-white shadow-lg rounded-2xl p-6 col-span-1 sm:col-span-2 lg:col-span-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
           <h2 className="text-xl font-semibold">Ingresos</h2>
@@ -101,7 +100,6 @@ export default function Administrar() {
         </div>
       </div>
 
-      {/* Cuadros de gestión */}
       {items.map((item) => (
         item.link ? (
           <a

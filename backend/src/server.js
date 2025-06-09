@@ -23,7 +23,7 @@ const logTransports = process.env.NODE_ENV === "development" ? {
   options: { 
     colorize: true, 
     translateTime: "SYS:yyyy-mm-dd HH:MM:ss",
-    destination: 1, // stdout
+    destination: 1, 
   }
 } : {
   targets: [
@@ -32,7 +32,7 @@ const logTransports = process.env.NODE_ENV === "development" ? {
       options: {
         colorize: true,
         translateTime: "SYS:yyyy-mm-dd HH:MM:ss",
-        destination: 1 // stdout
+        destination: 1 
       }
     },
     {

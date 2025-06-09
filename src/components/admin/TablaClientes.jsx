@@ -96,7 +96,6 @@ const TablaClientes = () => {
                 throw new Error('Error al actualizar el estado');
               }
 
-              // Refrescar los datos
               fetchClientes();
               toast.success(`Cliente ${banear ? 'baneado' : 'desbaneado'} correctamente`);
             } catch (error) {
@@ -131,7 +130,6 @@ const TablaClientes = () => {
                 throw new Error('Error al eliminar el cliente');
               }
 
-              // Refrescar los datos
               fetchClientes();
               toast.success('Cliente eliminado correctamente');
             } catch (error) {
@@ -400,7 +398,6 @@ const TablaClientes = () => {
         </table>
       </div>
 
-      {/* Paginación */}
       {pagination.totalPages > 1 && (
         <div className="flex justify-between items-center mt-4">
           <div>

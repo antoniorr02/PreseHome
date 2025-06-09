@@ -6,7 +6,7 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 export async function generarFacturaPDF(direccion, pedido, total) {
   const fecha = new Date(pedido.fecha_pedido).toLocaleDateString('es-ES');
-  const baseImponible = (total / 1.21).toFixed(2); // Asume IVA 21%
+  const baseImponible = (total / 1.21).toFixed(2); 
   const iva = (total - baseImponible).toFixed(2);
   const direccionTexto = `
   Calle: ${direccion.calle}

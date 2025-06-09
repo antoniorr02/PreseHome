@@ -55,12 +55,10 @@ const PedidosPendientes = () => {
         throw new Error(errorData.error || 'Error al actualizar el estado del pedido');
       }
 
-      // Actualizar el estado localmente
       setPedidos(pedidos.map(pedido => 
         pedido.pedido_id === pedidoId ? { ...pedido, estado: nuevoEstado } : pedido
       ));
       
-      // Si el estado es "enviado" o "cancelado", quitarlo de la lista
       if (nuevoEstado === 'enviado' || nuevoEstado === 'cancelado') {
         setPedidos(pedidos.filter(pedido => pedido.pedido_id !== pedidoId));
       }

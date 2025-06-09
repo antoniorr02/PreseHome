@@ -64,7 +64,6 @@ const TablaDevoluciones = () => {
         throw new Error(errorData.error || 'Error al actualizar la devolución');
       }
 
-      // Actualizar el estado local
       setPedidos(pedidos.map(pedido => {
         if (pedido.pedido_id === pedidoId) {
           return {

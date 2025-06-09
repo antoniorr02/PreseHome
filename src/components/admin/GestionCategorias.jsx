@@ -80,7 +80,6 @@ const GestionCategorias = () => {
       
       const method = categoriaEditando ? 'PUT' : 'POST';
   
-      // Añadimos loading state para el botón
       setLoading(true);
 
       const response = await fetch(url, {
@@ -103,7 +102,7 @@ const GestionCategorias = () => {
   
       toast.success(`Categoría ${categoriaEditando ? 'actualizada' : 'creada'} correctamente`);
       setModalAbierto(false);
-      await fetchCategorias(); // Esperamos a que termine la recarga
+      await fetchCategorias();
     } catch (error) {
       console.error('Error:', error);
       toast.error(error.message || `Error al ${categoriaEditando ? 'actualizar' : 'crear'} la categoría`);

@@ -13,7 +13,6 @@ document.getElementById("reset-password-form").addEventListener("submit", async 
       return;
     }
 
-    // Validar seguridad de la contraseña
     const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>/?]).{8,}$/;
     if (!passwordRegex.test(password)) {
       showError("La contraseña debe tener al menos 8 caracteres, un número y un carácter especial");

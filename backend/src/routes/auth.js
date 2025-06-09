@@ -111,11 +111,10 @@ export default async function (fastify, options) {
           }
       
           try {
-              const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verifica el token
-              const email = decoded.email; // Obtén el correo del token
+              const decoded = jwt.verify(token, process.env.JWT_SECRET);
+              const email = decoded.email;
               const hashedPassword = await bcrypt.hash(nuevaContrasena, 10);
       
-              // Cambiar la contraseña del usuario
               await prisma.cliente.update({
                   where: { email: email },
                   data: { password: hashedPassword },
@@ -182,8 +181,8 @@ export default async function (fastify, options) {
             url: '/login',
             config: {
               rateLimit: {
-                max: 5, // máximo 5 intentos
-                timeWindow: '1 minute', // por minuto
+                max: 5,
+                timeWindow: '1 minute',
                 errorResponseBuilder: () => ({
                   statusCode: 429,
                   error: 'Demasiados intentos. Intenta de nuevo en un minuto.',

@@ -73,11 +73,10 @@ export default async function (fastify, options) {
   })
 
   
-  // A partir de aqui pedidos y carrito ir viendo según hagan falta
 
   fastify.post('/clientes/:clienteId/pedidos', async (request, reply) => {
     const { clienteId } = request.params
-    const { items } = request.body // Array de { producto_id, cantidad, precio_unitario }
+    const { items } = request.body 
 
     try {
       const total = items.reduce((acc, item) => acc + (item.cantidad * item.precio_unitario), 0)

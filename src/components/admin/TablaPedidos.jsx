@@ -56,11 +56,9 @@ const TablaPedidos = () => {
 
       const updatedPedido = await response.json();
       
-      // Actualizar el pedido en el estado local
       setPedidos(pedidos.map(pedido => 
         pedido.pedido_id === pedidoId ? {
           ...updatedPedido,
-          // Mantener los detalles originales pero actualizar sus estados si es necesario
           detalle_pedido: pedido.detalle_pedido.map(detalle => ({
             ...detalle,
             estado: nuevoEstado === 'entregado' ? 'entregado' : 

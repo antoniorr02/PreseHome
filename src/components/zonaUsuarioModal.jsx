@@ -18,18 +18,18 @@ export default function UserSidebar() {
   }, []);
 
   const handleLogout = async (e) => {
-    e.preventDefault(); // Evita la recarga de la página
+    e.preventDefault(); 
 
     try {
       const response = await fetch("http://localhost:5000/logout", {
         method: "POST",
-        credentials: "include", // Para enviar cookies con la solicitud
+        credentials: "include",
       });
 
       if (response.ok) {
         console.log("Sesión cerrada");
         setIsOpen(false);
-        window.location.href = "/"; // Redirigir a la página de inicio
+        window.location.href = "/";
       } else {
         console.error("Error al cerrar sesión");
       }

@@ -260,7 +260,6 @@ const TablaOpiniones = () => {
         </table>
       </div>
 
-      {/* Paginación */}
       {pagination.totalPages > 1 && (
         <div className="flex justify-between items-center mt-4">
           <div>

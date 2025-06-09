@@ -104,7 +104,7 @@ const UserProfile = () => {
       try {
         const response = await fetch('http://localhost:5000/datos-cliente', {
           method: 'GET',
-          credentials: 'include', // Mando las cookies
+          credentials: 'include', 
         });
         if (response.status === 401) {
           window.location.href = '/';
@@ -209,7 +209,7 @@ const UserProfile = () => {
           <div className="border border-gray-400 p-4 rounded-lg">
             <h2 className="font-semibold">Métodos de pago</h2>
             <p className="text-gray-700">Aquí podrás añadir o editar tus métodos de pago.</p>
-            {/* Aquí iría el formulario para añadir o editar métodos de pago */}
+            {/* Aquí iría el formulario para añadir o editar métodos de pago (producción) */}
           </div>
         );
       default:
@@ -243,7 +243,6 @@ const UserProfile = () => {
         </button>
       </div>
 
-      {/* Aquí se renderiza la sección activa */}
       {renderSection()}
     </div>
   );
