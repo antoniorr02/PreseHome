@@ -43,7 +43,7 @@ const TablaClientes = () => {
         sortOrder: sortConfig.direction
       }).toString();
 
-      const response = await fetch(`http://localhost:5000/clientes?${queryParams}`, {
+      const response = await fetch(`/api/clientes?${queryParams}`, {
         credentials: 'include',
       });
       
@@ -83,7 +83,7 @@ const TablaClientes = () => {
           label: 'Sí',
           onClick: async () => {
             try {
-              const response = await fetch(`http://localhost:5000/clientes/${clienteId}/ban`, {
+              const response = await fetch(`/api/clientes/${clienteId}/ban`, {
                 method: 'PATCH',
                 credentials: 'include',
                 headers: {
@@ -121,7 +121,7 @@ const TablaClientes = () => {
           label: 'Sí, eliminar',
           onClick: async () => {
             try {
-              const response = await fetch(`http://localhost:5000/clientes/${clienteId}`, {
+              const response = await fetch(`/api/clientes/${clienteId}`, {
                 method: 'DELETE',
                 credentials: 'include',
               });

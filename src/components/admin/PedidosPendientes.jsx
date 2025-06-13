@@ -10,7 +10,7 @@ const PedidosPendientes = () => {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const response = await fetch('http://localhost:5000/admin/pedidos?estado=pendiente', {
+        const response = await fetch(`/api/admin/pedidos?estado=pendiente`, {
           credentials: 'include',
         });
         
@@ -41,7 +41,7 @@ const PedidosPendientes = () => {
 
   const handleEstadoChange = async (pedidoId, nuevoEstado) => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/pedidos/${pedidoId}/estado`, {
+      const response = await fetch(`/api/admin/pedidos/${pedidoId}/estado`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

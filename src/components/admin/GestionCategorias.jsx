@@ -20,7 +20,7 @@ const GestionCategorias = () => {
   const fetchCategorias = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/categorias', {
+      const response = await fetch(`/api/categorias`, {
         credentials: 'include',
       });
       
@@ -75,8 +75,8 @@ const GestionCategorias = () => {
     
     try {
       const url = categoriaEditando 
-        ? `http://localhost:5000/categorias/${categoriaEditando.categoria_id}`
-        : 'http://localhost:5000/categorias';
+        ? `/api/categorias/${categoriaEditando.categoria_id}`
+        : '/api/categorias';
       
       const method = categoriaEditando ? 'PUT' : 'POST';
   
@@ -120,7 +120,7 @@ const GestionCategorias = () => {
           label: 'Sí, eliminar',
           onClick: async () => {
             try {
-              const response = await fetch(`http://localhost:5000/categorias/${categoriaId}`, {
+              const response = await fetch(`/api/categorias/${categoriaId}`, {
                 method: 'DELETE',
                 credentials: 'include',
               });

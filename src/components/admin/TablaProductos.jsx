@@ -145,8 +145,8 @@ const TablaProductos = () => {
   
     const method = isEditMode ? 'PUT' : 'POST';
     const endpoint = isEditMode 
-      ? `http://localhost:5000/admin/productos/${productoEnEdicion.producto_id}` 
-      : 'http://localhost:5000/admin/productos';
+      ? `/api/admin/productos/${productoEnEdicion.producto_id}` 
+      : '/api/admin/productos';
   
     try {
       if (!newProduct.nombre || !newProduct.marca || !newProduct.precio || !newProduct.stock) {
@@ -208,7 +208,7 @@ const TablaProductos = () => {
         sortOrder: sortConfig.direction
       }).toString();
 
-      const response = await fetch(`http://localhost:5000/admin/productos?${queryParams}`, {
+      const response = await fetch(`/api/admin/productos?${queryParams}`, {
         credentials: 'include',
       });
       
@@ -233,7 +233,7 @@ const TablaProductos = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:5000/categorias', {
+      const response = await fetch(`/api/categorias`, {
         credentials: 'include',
       });
       
@@ -263,7 +263,7 @@ const TablaProductos = () => {
           label: 'Sí, eliminar',
           onClick: async () => {
             try {
-              const response = await fetch(`http://localhost:5000/admin/productos/${productoId}`, {
+              const response = await fetch(`/api/admin/productos/${productoId}`, {
                 method: 'DELETE',
                 credentials: 'include',
               });

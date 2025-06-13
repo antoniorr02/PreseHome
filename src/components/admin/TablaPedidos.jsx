@@ -10,7 +10,7 @@ const TablaPedidos = () => {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const response = await fetch('http://localhost:5000/admin/pedidos', {
+        const response = await fetch(`/api/admin/pedidos`, {
           credentials: 'include',
         });
         
@@ -40,7 +40,7 @@ const TablaPedidos = () => {
 
   const handleEstadoChange = async (pedidoId, nuevoEstado) => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/pedidos/${pedidoId}/estado`, {
+      const response = await fetch(`/api/admin/pedidos/${pedidoId}/estado`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

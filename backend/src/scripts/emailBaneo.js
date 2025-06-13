@@ -37,7 +37,7 @@ export async function enviarCorreoEstadoCuenta(destinatario, accion) {
           </p>
           
           <div style="text-align: center; margin-top: 30px;">
-            <a href="http://localhost:4321/contacto" style="background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-size: 16px;">
+            <a href="http://localhost/contacto" style="background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-size: 16px;">
               Contactar Soporte
             </a>
           </div>

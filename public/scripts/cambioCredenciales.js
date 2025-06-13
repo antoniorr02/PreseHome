@@ -20,7 +20,7 @@ document.getElementById("reset-password-form").addEventListener("submit", async 
     }
 
     try {
-      const res = await fetch("http://localhost:5000/restablecer-credenciales", {
+      const res = await fetch(`/api/restablecer-credenciales`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

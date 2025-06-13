@@ -14,7 +14,7 @@ export default function Administrar() {
   const [datos, setDatos] = useState([]);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/ingresos?periodo=${periodo}`, {
+    fetch(`/api/ingresos?periodo=${periodo}`, {
         credentials: 'include',
     })
     .then((res) => res.json())
@@ -28,7 +28,7 @@ export default function Administrar() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5000/logout", {
+      const response = await fetch(`/api/logout`, {
         method: "POST",
         credentials: "include",
       });

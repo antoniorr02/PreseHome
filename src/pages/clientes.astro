@@ -4,7 +4,7 @@ import TablaClientes from '../components/admin/TablaClientes.jsx';
 
 export const prerender = false;
 
-const response = await fetch('http://localhost:5000/rol-sesion', {
+const response = await fetch(`/api/rol-sesion`, {
   headers: Astro.request.headers,
 });
 
@@ -22,6 +22,6 @@ if (rol !== 'Admin') {
 <Layout>
   <section class="min-h-screen max-w-7xl mx-auto px-4 py-10">
     <h1 class="text-4xl font-bold mb-8 text-center">Gestión de Clientes</h1>
-    <TablaClientes client:load/>
+    <TablaClientes />
   </section>
 </Layout>

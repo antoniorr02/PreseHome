@@ -8,7 +8,7 @@ export default function SincronizarCarritoGoogle() {
       if (carritoLocal.length === 0) return;
 
       try {
-        const authRes = await fetch("http://localhost:5000/rol-sesion", {
+        const authRes = await fetch(`/api/rol-sesion`, {
           method: "GET",
           credentials: "include"
         });
@@ -16,7 +16,7 @@ export default function SincronizarCarritoGoogle() {
         if (!authRes.ok) return;
 
         for (const item of carritoLocal) {
-          await fetch("http://localhost:5000/carrito", {
+          await fetch(`/api/carrito`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json"

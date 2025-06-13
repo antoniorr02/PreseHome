@@ -10,7 +10,7 @@ const TablaDevoluciones = () => {
   useEffect(() => {
     const fetchPedidosConDevoluciones = async () => {
       try {
-        const response = await fetch('http://localhost:5000/admin/devoluciones', {
+        const response = await fetch(`/api/admin/devoluciones`, {
           credentials: 'include',
         });
         
@@ -48,7 +48,7 @@ const TablaDevoluciones = () => {
   const handleEstadoDevolucion = async (pedidoId, productoId, nuevoEstado) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/admin/devoluciones/${pedidoId}/producto/${productoId}`,
+        `/api/admin/devoluciones/${pedidoId}/producto/${productoId}`,
         {
           method: 'PUT',
           headers: {

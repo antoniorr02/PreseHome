@@ -33,7 +33,7 @@ const TablaOpiniones = () => {
         maxRating: filters.maxRating
       }).toString();
 
-      const response = await fetch(`http://localhost:5000/opiniones?${queryParams}`, {
+      const response = await fetch(`/api/opiniones?${queryParams}`, {
         credentials: 'include',
       });
       
@@ -65,7 +65,7 @@ const TablaOpiniones = () => {
           label: 'Sí, eliminar',
           onClick: async () => {
             try {
-              const response = await fetch(`http://localhost:5000/opiniones/${opinionId}`, {
+              const response = await fetch(`/api/opiniones/${opinionId}`, {
                 method: 'DELETE',
                 credentials: 'include',
               });

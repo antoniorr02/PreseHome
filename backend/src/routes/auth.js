@@ -41,8 +41,8 @@ export default async function (fastify, options) {
             await enviarCorreoConfirmacion(email, token_tmp);
             return reply.status(201).send({ message: 'Usuario registrado correctamente. Por favor, revisa tu correo para confirmar tu cuenta.' });
         } catch (error) {
-            console.error('Error al generar el token:', error.message);
-            return reply.status(500).send({ error: 'Error al registrar el cliente', details: error.message });
+            console.error('Error al generar el token:', error);
+            return reply.status(500).send({ error: 'Error al registrar el cliente', details: error.message || error});
         }
       });
 

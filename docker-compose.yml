@@ -1,0 +1,53 @@
+volumes:
+  psql:
+
+networks:
+  presehome_red:
+    driver: bridge
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    volumes:
+      - psql:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=antonio
+      - POSTGRES_DB=PreseHome
+    networks:
+      - presehome_red
+    
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    expose:
+      - "5000"  # ya no necesitamos publicar el puerto al host
+    networks:
+      - presehome_red
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    expose:
+      - "3000"
+    networks:
+      - presehome_red
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - presehome_red

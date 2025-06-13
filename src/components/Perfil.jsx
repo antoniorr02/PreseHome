@@ -17,7 +17,7 @@ const UserProfile = () => {
 
   const handleUpdate = async (updatedData) => {
     try {
-      const res = await fetch(`http://localhost:5000/clientes/${updatedData.cliente_id}`, {
+      const res = await fetch(`/api/clientes/${updatedData.cliente_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -52,7 +52,7 @@ const UserProfile = () => {
   const handleNuevaDireccion = async (updatedData) => {
     try {
       const numero = updatedData.numero ? parseInt(updatedData.numero) : null;
-      const res = await fetch(`http://localhost:5000/direccion/${updatedData.cliente_id}`, {
+      const res = await fetch(`/api/direccion/${updatedData.cliente_id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -79,7 +79,7 @@ const UserProfile = () => {
 
   const handleEliminarDireccion = async (direccionId) => {
     try {
-      const res = await fetch(`http://localhost:5000/direccion/${direccionId}`, {
+      const res = await fetch(`/api/direccion/${direccionId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -102,7 +102,7 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch('http://localhost:5000/datos-cliente', {
+        const response = await fetch(`/api/datos-cliente`, {
           method: 'GET',
           credentials: 'include', 
         });

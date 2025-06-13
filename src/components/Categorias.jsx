@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = 'http://localhost:5000/categorias';
+const API_URL = `/api/categorias`;
 
 export default function Categorias() {
   const [categorias, setCategorias] = useState([]);

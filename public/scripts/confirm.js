@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     confirmarBtn.addEventListener('click', async () => {
         try {
-            const response = await fetch('http://localhost:5000/confirmar', {
+            const response = await fetch(`/api/confirmar`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

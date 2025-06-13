@@ -18,7 +18,7 @@ const ValorarProductoModal = ({ isOpen, onClose, product }) => {
 
   const handleSubmitReview = async () => {
     try {
-      const res = await fetch("http://localhost:5000/reseñas", {
+      const res = await fetch(`/api/reseñas`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

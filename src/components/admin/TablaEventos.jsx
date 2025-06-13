@@ -8,7 +8,7 @@ export default function TablaEventos() {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const response = await fetch('http://localhost:5000/logs', {
+        const response = await fetch(`/api/logs`, {
           credentials: 'include',
         });
         

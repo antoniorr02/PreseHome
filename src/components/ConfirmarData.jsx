@@ -11,7 +11,7 @@ const ConfirmarData = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/datos-cliente", {
+        const res = await fetch(`/api/datos-cliente`, {
           method: 'GET',
           credentials: "include",
         });
@@ -125,8 +125,8 @@ const ConfirmarData = () => {
     try {
       const metodoDireccion = direccionSeleccionada.direccion_id ? "PUT" : "POST";
       const endpointDireccion = direccionSeleccionada.direccion_id
-        ? `http://localhost:5000/direccion/${direccionSeleccionada.direccion_id}`
-        : `http://localhost:5000/direccion`;
+        ? `/api/direccion/${direccionSeleccionada.direccion_id}`
+        : `/api/direccion`;
 
       const resDireccion = await fetch(endpointDireccion, {
         method: metodoDireccion,
@@ -144,7 +144,7 @@ const ConfirmarData = () => {
         email: cliente.email,
       };
 
-      const resCliente = await fetch(`http://localhost:5000/clientes/${cliente.cliente_id}`, {
+      const resCliente = await fetch(`/api/clientes/${cliente.cliente_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -156,8 +156,8 @@ const ConfirmarData = () => {
       if (tarjetaSeleccionada) {
         const metodo = tarjetaSeleccionada.tarjeta_id ? "PUT" : "POST";
         const endpoint = tarjetaSeleccionada.tarjeta_id
-          ? `http://localhost:5000/tarjeta/${tarjetaSeleccionada.tarjeta_id}`
-          : `http://localhost:5000/tarjeta`;
+          ? `/api/tarjeta/${tarjetaSeleccionada.tarjeta_id}`
+          : `/api/tarjeta`;
 
         const resTarjeta = await fetch(endpoint, {
           method: metodo,
@@ -173,7 +173,7 @@ const ConfirmarData = () => {
         console.log("Tarjeta guardada:", tarjetaSeleccionada);
       }
 
-      const resPedido = await fetch(`http://localhost:5000/confirmar-pago`, {
+      const resPedido = await fetch(`/api/confirmar-pago`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -30,7 +30,7 @@ const FormEditarReview = ({ review, onSubmit }) => {
     };
   
     try {
-      const res = await fetch(`http://localhost:5000/reviews/${review.reseña_id}`, {
+      const res = await fetch(`/api/reviews/${review.reseña_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedReview),

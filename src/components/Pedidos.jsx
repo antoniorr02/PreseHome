@@ -19,7 +19,7 @@ const PedidosUser = () => {
       if (activeSection === 'orders') {
         const fetchPedidos = async () => {
           try {
-              const response = await fetch('http://localhost:5000/pedidos-cliente', {
+              const response = await fetch(`/api/pedidos-cliente`, {
               method: 'GET',
               credentials: 'include',
               });
@@ -49,7 +49,7 @@ const PedidosUser = () => {
           const fetchReviews = async () => {
             setLoadingReviews(true);
             try {
-              const res = await fetch('http://localhost:5000/valoraciones-usuarios', {
+              const res = await fetch(`/api/valoraciones-usuarios`, {
                 method: 'GET',
                 credentials: 'include',
               });
@@ -61,7 +61,7 @@ const PedidosUser = () => {
 
                 const fetchedProductos = await Promise.all(
                     productoIds.map(async (id) => {
-                    const resProd = await fetch(`http://localhost:5000/productos/${id}`);
+                    const resProd = await fetch(`/api/productos/${id}`);
                     if (resProd.ok) {
                         const dataProd = await resProd.json();
                         return [id, dataProd];
@@ -105,7 +105,7 @@ const PedidosUser = () => {
 
     const handleDeleteReview = async (reviewId) => {      
         try {
-          const response = await fetch(`http://localhost:5000/review/${reviewId}`, {
+          const response = await fetch(`/api/review/${reviewId}`, {
             method: 'DELETE',
             credentials: 'include',
           });
@@ -122,7 +122,7 @@ const PedidosUser = () => {
       
     const handleCancelarPedido = async (pedidoId) => {
       try {
-          const response = await fetch(`http://localhost:5000/pedidos/${pedidoId}/cancelar`, {
+          const response = await fetch(`/api/pedidos/${pedidoId}/cancelar`, {
               method: 'PUT',
               credentials: 'include',
           });
@@ -141,7 +141,7 @@ const PedidosUser = () => {
 
     const handleDevolverProducto = async (pedidoId, productoId) => {
       try {
-          const response = await fetch(`http://localhost:5000/pedidos/${pedidoId}/productos/${productoId}/devolver`, {
+          const response = await fetch(`/api/pedidos/${pedidoId}/productos/${productoId}/devolver`, {
               method: 'PUT',
               credentials: 'include',
           });

@@ -71,10 +71,10 @@ fastify.log.info("Instancia de Fastify creada.");
 
 // Configura CORS
 fastify.register(fastifyCors, {
-  origin: "http://localhost:4321",
+  origin: "http://localhost:80",
   credentials: true,
 });
-fastify.log.info("CORS configurado para http://localhost:4321");
+fastify.log.info("CORS configurado para http://localhost");
 
 // Configura cookies
 fastify.register(fastifyCookie, {
@@ -122,7 +122,7 @@ fastify.log.info("Tarea CRON programada (ejecución cada 12 horas).");
 const start = async () => {
   try {
     await fastify.listen({ port: 5000, host: "0.0.0.0" });
-    fastify.log.info(`Servidor escuchando en http://localhost:5000`);
+    fastify.log.info(`Servidor escuchando en http://backend:5000`);
   } catch (err) {
     fastify.log.fatal(`Error al iniciar el servidor: ${err.message}`);
     process.exit(1);
