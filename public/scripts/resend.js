@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const email = formData.get("email");
 
       try {
-        const response = await fetch(`/api/reenviar`, {
+        const response = await fetch(`http://localhost/reenviar`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),

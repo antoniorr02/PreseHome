@@ -132,16 +132,16 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
   fastify.post('/admin', async (request, reply) => {
     const token = request.cookies.token;
     if (!token) {
-        return reply.status(401).send({ error: "No autenticado" });
+      return reply.status(401).send({ error: "No autenticado" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const currentAdmin = await prisma.cliente.findUnique({
-        where: { email: decoded.email }
+    const admin = await prisma.cliente.findUnique({
+      where: { email: decoded.email }
     });
     
-    if (!currentAdmin || currentAdmin.rol !== 'Admin') {
-        return reply.status(403).send({ error: "Acceso no autorizado" });
+    if (!admin || admin.rol != 'Admin') {
+      return reply.status(403).send({ error: "Acceso no autorizado" });
     }
 
     const { nombre, apellidos, email, dni, password } = request.body;
@@ -587,43 +587,43 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
           return reply.status(401).send({ error: "No autenticado" });
       }
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const admin = await prisma.cliente.findUnique({
-          where: { email: decoded.email }
-      });
-      
-      if (!admin || admin.rol !== 'Admin') {
-          return reply.status(403).send({ error: "Acceso no autorizado" });
-      }
-
-      const { 
-          page = 1, 
-          limit = 10,
-          search = '',
-          minRating = '',
-          maxRating = ''
-      } = request.query;
-
-      const where = {
-          AND: [
-              search ? {
-                  OR: [
-                      { cliente: { nombre: { contains: search, mode: 'insensitive' } } },
-                      { cliente: { apellidos: { contains: search, mode: 'insensitive' } } },
-                      { cliente: { email: { contains: search, mode: 'insensitive' } } },
-                      { producto: { nombre: { contains: search, mode: 'insensitive' } } },
-                      { comentario: { contains: search, mode: 'insensitive' } }
-                  ]
-              } : {},
-              minRating ? { calificacion: { gte: parseInt(minRating) } } : {},
-              maxRating ? { calificacion: { lte: parseInt(maxRating) } } : {}
-          ].filter(cond => Object.keys(cond).length > 0)
-      };
-
       try {
-          const total = await prisma.reseña.count({ where });
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const admin = await prisma.Cliente.findUnique({
+              where: { email: decoded.email }
+          });
+          
+          if (!admin || admin.rol !== 'Admin') {
+              return reply.status(403).send({ error: "Acceso no autorizado" });
+          }
 
-          const opiniones = await prisma.reseña.findMany({
+          const { 
+              page = 1, 
+              limit = 10,
+              search = '',
+              minRating = '',
+              maxRating = ''
+          } = request.query;
+
+          const where = {
+              AND: [
+                  search ? {
+                      OR: [
+                          { cliente: { nombre: { contains: search, mode: 'insensitive' } } },
+                          { cliente: { apellidos: { contains: search, mode: 'insensitive' } } },
+                          { cliente: { email: { contains: search, mode: 'insensitive' } } },
+                          { producto: { nombre: { contains: search, mode: 'insensitive' } } },
+                          { comentario: { contains: search, mode: 'insensitive' } }
+                      ]
+                  } : {},
+                  minRating ? { calificacion: { gte: parseInt(minRating) } } : {},
+                  maxRating ? { calificacion: { lte: parseInt(maxRating) } } : {}
+              ].filter(cond => Object.keys(cond).length > 0)
+          };
+
+          const total = await prisma.Reseña.count({ where });
+
+          const opiniones = await prisma.Reseña.findMany({
               where,
               include: {
                   cliente: {
@@ -648,7 +648,7 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
           });
 
           return reply.send({
-              data: opiniones,
+              valoraciones: opiniones,
               pagination: {
                   total,
                   page: parseInt(page),

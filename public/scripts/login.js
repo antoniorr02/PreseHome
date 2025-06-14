@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const password = formData.get("password");
 
         try {
-            const response = await fetch(`/api/login`, {
+            const response = await fetch(`http://localhost/login`, {
                 method: 'POST',
                 headers: {
                 'Content-Type': 'application/json',
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const token = result.token;
                 const localCart = JSON.parse(localStorage.getItem("cart"));
                 if (localCart?.length > 0) {
-                    await fetch(`/api/carrito/sincronizar`, {
+                    await fetch(`http://localhost/carrito/sincronizar`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json", Authorization: `${email}` },
                         body: JSON.stringify({ items: localCart }),

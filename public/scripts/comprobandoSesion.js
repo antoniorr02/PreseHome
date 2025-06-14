@@ -1,6 +1,6 @@
 async function checkAuth() {
     try {
-        const response = await fetch(`/api/rol-sesion`, {
+        const response = await fetch(`http://localhost/rol-sesion`, {
             method: "GET",
             credentials: "include"
         });

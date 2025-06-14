@@ -25,6 +25,27 @@ const TablaClientes = () => {
   });
 
   useEffect(() => {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
+  
+  useEffect(() => {
     fetchClientes();
   }, [filters, pagination.page, pagination.limit, sortConfig]);
 
@@ -43,7 +64,7 @@ const TablaClientes = () => {
         sortOrder: sortConfig.direction
       }).toString();
 
-      const response = await fetch(`/api/clientes?${queryParams}`, {
+      const response = await fetch(`http://localhost/clientes?${queryParams}`, {
         credentials: 'include',
       });
       
@@ -83,7 +104,7 @@ const TablaClientes = () => {
           label: 'Sí',
           onClick: async () => {
             try {
-              const response = await fetch(`/api/clientes/${clienteId}/ban`, {
+              const response = await fetch(`http://localhost/clientes/${clienteId}/ban`, {
                 method: 'PATCH',
                 credentials: 'include',
                 headers: {
@@ -121,7 +142,7 @@ const TablaClientes = () => {
           label: 'Sí, eliminar',
           onClick: async () => {
             try {
-              const response = await fetch(`/api/clientes/${clienteId}`, {
+              const response = await fetch(`http://localhost/clientes/${clienteId}`, {
                 method: 'DELETE',
                 credentials: 'include',
               });

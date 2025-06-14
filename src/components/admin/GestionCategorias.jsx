@@ -12,6 +12,27 @@ const GestionCategorias = () => {
     nombre: '',
     url_imagen: ''
   });
+  
+  useEffect(() => {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
 
   useEffect(() => {
     fetchCategorias();
@@ -20,7 +41,7 @@ const GestionCategorias = () => {
   const fetchCategorias = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/categorias`, {
+      const response = await fetch(`http://localhost/categorias`, {
         credentials: 'include',
       });
       
@@ -75,8 +96,8 @@ const GestionCategorias = () => {
     
     try {
       const url = categoriaEditando 
-        ? `/api/categorias/${categoriaEditando.categoria_id}`
-        : '/api/categorias';
+        ? `http://localhost/categorias/${categoriaEditando.categoria_id}`
+        : 'http://localhost/categorias';
       
       const method = categoriaEditando ? 'PUT' : 'POST';
   
@@ -120,7 +141,7 @@ const GestionCategorias = () => {
           label: 'Sí, eliminar',
           onClick: async () => {
             try {
-              const response = await fetch(`/api/categorias/${categoriaId}`, {
+              const response = await fetch(`http://localhost/categorias/${categoriaId}`, {
                 method: 'DELETE',
                 credentials: 'include',
               });

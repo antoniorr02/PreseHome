@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Package, Mail, Settings, LogOut } from "lucide-react";
+import { User, Package, Mail, LogOut } from "lucide-react";
 
 export default function UserSidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,7 +21,7 @@ export default function UserSidebar() {
     e.preventDefault(); 
 
     try {
-      const response = await fetch(`/api/logout`, {
+      const response = await fetch(`http://localhost/logout`, {
         method: "POST",
         credentials: "include",
       });

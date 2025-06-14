@@ -31,7 +31,7 @@ import CarritoSidebar from "../components/zonaModalCarrito.jsx";
         />
     </div>
     <div class="flex items-center space-x-6">
-      <a href="/categorias" class="group relative p-2 bg-transparent text-gray-700 transition-colors duration-300">
+      <a href="/nuestras-categorias" class="group relative p-2 bg-transparent text-gray-700 transition-colors duration-300">
         Categorías
         <span class="absolute left-0 bottom-0 w-full h-1 bg-red-500 transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
       </a>
@@ -45,8 +45,8 @@ import CarritoSidebar from "../components/zonaModalCarrito.jsx";
     </div>
   </header>
   
-  <UserSidebar  />
-  <CarritoSidebar  />
+  <UserSidebar client:load />
+  <CarritoSidebar client:load />
 
     <div class="flex">
       <main class="flex-1 justify-center mx-auto p-4">

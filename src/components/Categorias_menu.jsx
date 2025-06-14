@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import ProductModal from './ProductModal';
 
-const API_CATEGORIAS = `/api/categorias`;
-const API_PRODUCTOS_POR_CATEGORIA = (categoriaId) => `/api/categorias/${categoriaId}/productos`;
+const API_CATEGORIAS = `http://localhost/categorias`;
+const API_PRODUCTOS_POR_CATEGORIA = (categoriaId) => `http://localhost/categorias/${categoriaId}/productos`;
 
 export default function CategoryView() {
   const [categorias, setCategorias] = useState([]);
@@ -64,7 +64,7 @@ export default function CategoryView() {
     const imagenPrincipal = producto.imagenes?.find((img) => img.principal)?.url || "";
   
     try {
-      const authRes = await fetch(`/api/rol-sesion`, {
+      const authRes = await fetch(`http://localhost/rol-sesion`, {
         method: "GET",
         credentials: "include"
       });
@@ -72,7 +72,7 @@ export default function CategoryView() {
       const isLoggedIn = authRes.ok;
   
       if (isLoggedIn) {
-        const res = await fetch(`/api/carrito`, {
+        const res = await fetch(`http://localhost/carrito`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"

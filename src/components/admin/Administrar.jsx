@@ -14,7 +14,28 @@ export default function Administrar() {
   const [datos, setDatos] = useState([]);
 
   useEffect(() => {
-    fetch(`/api/ingresos?periodo=${periodo}`, {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch(`http://localhost/ingresos?periodo=${periodo}`, {
         credentials: 'include',
     })
     .then((res) => res.json())
@@ -28,7 +49,7 @@ export default function Administrar() {
     e.preventDefault();
 
     try {
-      const response = await fetch(`/api/logout`, {
+      const response = await fetch(`http://localhost/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -45,13 +66,13 @@ export default function Administrar() {
   };
 
   const items = [
-    { title: 'Gestión de clientes', link: '/clientes' },
+    { title: 'Gestión de clientes', link: '/gestion-clientes' },
     { title: 'Gestión de categoría', link: '/gestion-categorias' },
     { title: 'Gestión de productos', link: '/gestion-productos' },
     { title: 'Gestión de pedidos', link: '/gestion-pedidos' },
     { title: 'Gestión de devoluciones', link: '/gestion-devoluciones' },
     { title: 'Añadir nuevo administrador', link: '/nuevo-admin' },
-    { title: 'Gestionar reseñas', link: '/opiniones' },
+    { title: 'Gestionar reseñas', link: '/gestion-opiniones' },
     { title: 'Gestor de eventos', link: '/eventos' },
     { title: 'Cerrar sesión', action: handleLogout },
   ];

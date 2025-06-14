@@ -55,7 +55,7 @@ import { useState } from 'react';
         const responseMessage = document.getElementById("response-message");
 
         try {
-            const response = await fetch(`/api/contact`, {
+            const response = await fetch(`http://localhost/contact`, {
                 method: "POST",
                 body: JSON.stringify(Object.fromEntries(formData)),
                 headers: { "Content-Type": "application/json" }

@@ -8,9 +8,30 @@ const TablaDevoluciones = () => {
   const [activeFilter, setActiveFilter] = useState('solicitada');
 
   useEffect(() => {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
+  
+  useEffect(() => {
     const fetchPedidosConDevoluciones = async () => {
       try {
-        const response = await fetch(`/api/admin/devoluciones`, {
+        const response = await fetch(`http://localhost/admin/devoluciones`, {
           credentials: 'include',
         });
         
@@ -48,7 +69,7 @@ const TablaDevoluciones = () => {
   const handleEstadoDevolucion = async (pedidoId, productoId, nuevoEstado) => {
     try {
       const response = await fetch(
-        `/api/admin/devoluciones/${pedidoId}/producto/${productoId}`,
+        `http://localhost/admin/devoluciones/${pedidoId}/producto/${productoId}`,
         {
           method: 'PUT',
           headers: {

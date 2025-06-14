@@ -365,11 +365,14 @@ export default async function userRoutes(fastify, options) {
                 total: total,
             });
     
+            console.log('Borrando items del carrito...');
             await prisma.itemCarrito.deleteMany({
-                where: {
-                    carrito_id: cliente.carrito.carrito_id
-                }
+              where: {
+                carrito_id: cliente.carrito.carrito_id
+              }
             });
+            console.log('Items del carrito eliminados');
+
     
             return reply.send({ mensaje: 'Pedido confirmado y factura enviada.', pedido: nuevoPedido });
         } catch (error) {

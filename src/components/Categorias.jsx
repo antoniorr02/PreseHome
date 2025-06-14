@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = `/api/categorias`;
+const API_URL = `http://localhost/categorias`;
 
 export default function Categorias() {
   const [categorias, setCategorias] = useState([]);
@@ -24,7 +24,7 @@ export default function Categorias() {
 
   const handleCategoryClick = (categoriaId) => {
     localStorage.setItem('selectedCategory', categoriaId);
-    window.location.href = '/categorias';
+    window.location.href = '/nuestras-categorias';
   };
 
   return (

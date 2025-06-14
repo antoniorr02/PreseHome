@@ -8,9 +8,30 @@ const PedidosPendientes = () => {
   const [expandedRows, setExpandedRows] = useState({});
 
   useEffect(() => {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
+  
+  useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const response = await fetch(`/api/admin/pedidos?estado=pendiente`, {
+        const response = await fetch(`http://localhost/admin/pedidos?estado=pendiente`, {
           credentials: 'include',
         });
         
@@ -41,7 +62,7 @@ const PedidosPendientes = () => {
 
   const handleEstadoChange = async (pedidoId, nuevoEstado) => {
     try {
-      const response = await fetch(`/api/admin/pedidos/${pedidoId}/estado`, {
+      const response = await fetch(`http://localhost/admin/pedidos/${pedidoId}/estado`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

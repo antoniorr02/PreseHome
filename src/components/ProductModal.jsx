@@ -47,7 +47,7 @@ export default function ProductModal({ product, onClose }) {
     const imagenPrincipal = producto.imagenes?.find((img) => img.principal)?.url || "";
 
     try {
-      const authRes = await fetch(`/api/rol-sesion`, {
+      const authRes = await fetch(`http://localhost/rol-sesion`, {
         method: "GET",
         credentials: "include"
       });
@@ -55,7 +55,7 @@ export default function ProductModal({ product, onClose }) {
       const isLoggedIn = authRes.ok;
 
       if (isLoggedIn) {
-        const res = await fetch(`/api/carrito`, {
+        const res = await fetch(`http://localhost/carrito`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -103,7 +103,7 @@ export default function ProductModal({ product, onClose }) {
 
   const fetchMedia = async () => {
     try {
-      const res = await fetch(`/api/productos/${product.producto_id}/media-reseñas`);
+      const res = await fetch(`http://localhost/productos/${product.producto_id}/media-reseñas`);
       const data = await res.json();
       setMediaEstrellas(data.media);
       setCantidadValoraciones(data.cantidad);
@@ -128,7 +128,7 @@ export default function ProductModal({ product, onClose }) {
     if (!product?.producto_id) return;
   
     try {
-      const res = await fetch(`/api/valoraciones/${product.producto_id}`);
+      const res = await fetch(`http://localhost/valoraciones/${product.producto_id}`);
       const data = await res.json();
       setValoraciones(data.valoraciones);
     } catch (error) {

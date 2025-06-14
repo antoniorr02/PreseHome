@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
   
       try {
-        const response = await fetch(`/api/admin`, {
+        const response = await fetch(`http://localhost/admin`, {
           method: "POST",
           credentials: 'include',
           headers: { "Content-Type": "application/json" },

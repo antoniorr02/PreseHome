@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const ConfirmarData = () => {
   const [cliente, setCliente] = useState(null);
@@ -11,7 +11,7 @@ const ConfirmarData = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const res = await fetch(`/api/datos-cliente`, {
+        const res = await fetch("http://localhost/datos-cliente", {
           method: 'GET',
           credentials: "include",
         });
@@ -21,7 +21,18 @@ const ConfirmarData = () => {
         setCliente({ ...data });
 
         if (data.direcciones.length > 0) {
-          setDireccionSeleccionada({ ...data.direcciones[0] });
+            setDireccionSeleccionada({ ...data.direcciones[0] });
+        } else {
+            setDireccionSeleccionada({
+              direccion_id: null,
+              calle: "",
+              numero: "",
+              piso: "",
+              ciudad: "",
+              cod_postal: "",
+              pais: "",
+              cliente_id: data.cliente_id
+            });
         }
 
         if (data.tarjetas.length > 0) {
@@ -37,16 +48,19 @@ const ConfirmarData = () => {
   const validarCampos = () => {
     const nuevosErrores = {};
     
+    // Validar datos del cliente
     if (!cliente?.nombre?.trim()) nuevosErrores.nombre = 'Nombre es obligatorio';
     if (!cliente?.apellidos?.trim()) nuevosErrores.apellidos = 'Apellidos son obligatorios';
     if (!cliente?.telefono?.trim()) nuevosErrores.telefono = 'Teléfono es obligatorio';
     if (!cliente?.email?.trim()) nuevosErrores.email = 'Email es obligatorio';
     
+    // Validar dirección
     if (!direccionSeleccionada?.calle?.trim()) nuevosErrores.calle = 'Calle es obligatoria';
     if (!direccionSeleccionada?.ciudad?.trim()) nuevosErrores.ciudad = 'Ciudad es obligatoria';
     if (!direccionSeleccionada?.cod_postal?.trim()) nuevosErrores.cod_postal = 'Código postal es obligatorio';
     if (!direccionSeleccionada?.pais?.trim()) nuevosErrores.pais = 'País es obligatorio';
     
+    // Validar tarjeta (solo si hay tarjeta seleccionada)
     if (tarjetaSeleccionada) {
       if (!tarjetaSeleccionada?.numero?.trim()) nuevosErrores.numeroTarjeta = 'Número de tarjeta es obligatorio';
       if (!tarjetaSeleccionada?.titular?.trim()) nuevosErrores.titularTarjeta = 'Titular es obligatorio';
@@ -54,6 +68,7 @@ const ConfirmarData = () => {
       if (!tarjetaSeleccionada?.cvv?.trim()) nuevosErrores.cvv = 'CVV es obligatorio';
     }
     
+    // Validar checkbox de políticas
     if (!aceptaPoliticas) nuevosErrores.politicas = 'Debes aceptar las políticas';
     
     setErrores(nuevosErrores);
@@ -116,17 +131,19 @@ const ConfirmarData = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if(intentoEnvio) return;
     setIntentoEnvio(true);
     
     if (!validarCampos()) {
+      setIntentoEnvio(false);
       return;
     }
 
     try {
       const metodoDireccion = direccionSeleccionada.direccion_id ? "PUT" : "POST";
       const endpointDireccion = direccionSeleccionada.direccion_id
-        ? `/api/direccion/${direccionSeleccionada.direccion_id}`
-        : `/api/direccion`;
+        ? `http://localhost/direccion/${direccionSeleccionada.direccion_id}`
+        : `http://localhost/direccion`;
 
       const resDireccion = await fetch(endpointDireccion, {
         method: metodoDireccion,
@@ -144,7 +161,7 @@ const ConfirmarData = () => {
         email: cliente.email,
       };
 
-      const resCliente = await fetch(`/api/clientes/${cliente.cliente_id}`, {
+      const resCliente = await fetch(`http://localhost/clientes/${cliente.cliente_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -156,8 +173,8 @@ const ConfirmarData = () => {
       if (tarjetaSeleccionada) {
         const metodo = tarjetaSeleccionada.tarjeta_id ? "PUT" : "POST";
         const endpoint = tarjetaSeleccionada.tarjeta_id
-          ? `/api/tarjeta/${tarjetaSeleccionada.tarjeta_id}`
-          : `/api/tarjeta`;
+          ? `http://localhost/tarjeta/${tarjetaSeleccionada.tarjeta_id}`
+          : `http://localhost/tarjeta`;
 
         const resTarjeta = await fetch(endpoint, {
           method: metodo,
@@ -173,7 +190,8 @@ const ConfirmarData = () => {
         console.log("Tarjeta guardada:", tarjetaSeleccionada);
       }
 
-      const resPedido = await fetch(`/api/confirmar-pago`, {
+      // Confirmar pedido y generar factura
+      const resPedido = await fetch(`http://localhost/confirmar-pago`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -199,6 +217,7 @@ const ConfirmarData = () => {
     <form onSubmit={handleSubmit} className="max-w-xl mx-auto bg-white shadow-lg rounded-2xl p-6">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">Dirección de envío</h2>
 
+      {/* Selector de dirección */}
       <label className="block mb-2 text-sm font-medium text-gray-700">Selecciona una dirección</label>
       <select
         className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
@@ -212,6 +231,7 @@ const ConfirmarData = () => {
         ))}
       </select>
 
+      {/* Campos de dirección */}
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Calle*</label>
@@ -290,6 +310,7 @@ const ConfirmarData = () => {
         Añadir nueva dirección
       </button>
 
+      {/* Datos del cliente */}
       <div className="mt-8 space-y-4 border-t pt-6">
         <h3 className="text-xl font-semibold text-gray-800">Datos del cliente</h3>
         
@@ -355,6 +376,7 @@ const ConfirmarData = () => {
         </div>
       </div>
 
+      {/* Tarjeta de crédito */}
       <div className="mt-8 space-y-4 border-t pt-6">
         <h3 className="text-xl font-semibold text-gray-800">Tarjeta de crédito</h3>
 
@@ -426,6 +448,7 @@ const ConfirmarData = () => {
         </button>
       </div>
 
+      {/* Checkbox de políticas */}
       <div className="mt-6 border-t pt-4">
         <div className="flex items-start">
           <div className="flex items-center h-5">
@@ -452,7 +475,7 @@ const ConfirmarData = () => {
           type="submit" 
           className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700"
         >
-          Confirmar y pagar
+            {intentoEnvio ? 'Procesando...' : 'Confirmar compra'}
         </button>
       </div>
     </form>

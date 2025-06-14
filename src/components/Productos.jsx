@@ -24,7 +24,7 @@ const Productos = () => {
   const fetchProductos = async (searchTerm) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/productos?search=${searchTerm}`);
+      const response = await fetch(`http://localhost/productos?search=${searchTerm}`);
       const data = await response.json();
       setProductos(data);
     } catch (error) {
@@ -38,7 +38,7 @@ const Productos = () => {
     const imagenPrincipal = producto.imagenes?.find((img) => img.principal)?.url || "";
   
     try {
-      const authRes = await fetch(`/api/rol-sesion`, {
+      const authRes = await fetch(`http://localhost/rol-sesion`, {
         method: "GET",
         credentials: "include"
       });
@@ -46,7 +46,7 @@ const Productos = () => {
       const isLoggedIn = authRes.ok;
   
       if (isLoggedIn) {
-        const res = await fetch(`/api/carrito`, {
+        const res = await fetch(`http://localhost/carrito`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"

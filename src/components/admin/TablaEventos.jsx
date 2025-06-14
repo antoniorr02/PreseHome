@@ -6,9 +6,30 @@ export default function TablaEventos() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
+  
+  useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const response = await fetch(`/api/logs`, {
+        const response = await fetch(`http://localhost/logs`, {
           credentials: 'include',
         });
         

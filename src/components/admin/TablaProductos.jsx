@@ -145,8 +145,8 @@ const TablaProductos = () => {
   
     const method = isEditMode ? 'PUT' : 'POST';
     const endpoint = isEditMode 
-      ? `/api/admin/productos/${productoEnEdicion.producto_id}` 
-      : '/api/admin/productos';
+      ? `http://localhost/admin/productos/${productoEnEdicion.producto_id}` 
+      : 'http://localhost/admin/productos';
   
     try {
       if (!newProduct.nombre || !newProduct.marca || !newProduct.precio || !newProduct.stock) {
@@ -190,6 +190,27 @@ const TablaProductos = () => {
   };  
 
   useEffect(() => {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
+  
+  useEffect(() => {
     fetchProductos();
     fetchCategories();
   }, [filters, pagination.page, pagination.limit, sortConfig]);
@@ -208,7 +229,7 @@ const TablaProductos = () => {
         sortOrder: sortConfig.direction
       }).toString();
 
-      const response = await fetch(`/api/admin/productos?${queryParams}`, {
+      const response = await fetch(`http://localhost/admin/productos?${queryParams}`, {
         credentials: 'include',
       });
       
@@ -233,7 +254,7 @@ const TablaProductos = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`/api/categorias`, {
+      const response = await fetch(`http://localhost/categorias`, {
         credentials: 'include',
       });
       
@@ -263,7 +284,7 @@ const TablaProductos = () => {
           label: 'Sí, eliminar',
           onClick: async () => {
             try {
-              const response = await fetch(`/api/admin/productos/${productoId}`, {
+              const response = await fetch(`http://localhost/admin/productos/${productoId}`, {
                 method: 'DELETE',
                 credentials: 'include',
               });

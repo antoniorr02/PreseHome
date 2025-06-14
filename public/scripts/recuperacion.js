@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             console.log("Enviando correo para recuperar contraseña:", email);
-            const response = await fetch(`/api/recuperar`, {
+            const response = await fetch(`http://localhost/recuperar`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

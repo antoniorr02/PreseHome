@@ -19,6 +19,27 @@ const TablaOpiniones = () => {
   });
 
   useEffect(() => {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
+  
+  useEffect(() => {
     fetchOpiniones();
   }, [filters, pagination.page, pagination.limit]);
 
@@ -33,7 +54,7 @@ const TablaOpiniones = () => {
         maxRating: filters.maxRating
       }).toString();
 
-      const response = await fetch(`/api/opiniones?${queryParams}`, {
+      const response = await fetch(`http://localhost/opiniones?${queryParams}`, {
         credentials: 'include',
       });
       
@@ -41,8 +62,8 @@ const TablaOpiniones = () => {
         throw new Error('Error al obtener opiniones');
       }
       
-      const { data, pagination: paginationData } = await response.json();
-      setOpiniones(data);
+      const { valoraciones, pagination: paginationData } = await response.json(); // Cambiado de data a valoraciones
+      setOpiniones(valoraciones);
       setPagination(prev => ({
         ...prev,
         total: paginationData.total,
@@ -65,7 +86,7 @@ const TablaOpiniones = () => {
           label: 'Sí, eliminar',
           onClick: async () => {
             try {
-              const response = await fetch(`/api/opiniones/${opinionId}`, {
+              const response = await fetch(`http://localhost/opiniones/${opinionId}`, {
                 method: 'DELETE',
                 credentials: 'include',
               });

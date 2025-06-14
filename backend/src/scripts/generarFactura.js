@@ -32,8 +32,8 @@ export async function generarFacturaPDF(direccion, pedido, total) {
           <h3 style="margin-top: 0; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Emisor</h3>
           <p style="line-height: 1.5;">
             PreseHome S.L.<br>
-            CIF: B12345678<br>
-            C/ Ejemplo 123, 28080 Madrid<br>
+            CIF: XXX<br>
+            C/ Doña Rosita, 8, Zaidín, 18007 Granada<br>
             España
           </p>
         </div>
@@ -91,13 +91,22 @@ export async function generarFacturaPDF(direccion, pedido, total) {
   `;
 
 
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    headless: 'new',
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--single-process'
+    ]
+  });
   const page = await browser.newPage();
   await page.setContent(html, { waitUntil: 'networkidle0' });
 
   const dirPath = path.join(__dirname, 'facturas');
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
+    fs.chmodSync(dirPath, 0o777);
   }
 
   const filePath = path.join(dirPath, `factura_${pedido.pedido_id}.pdf`);

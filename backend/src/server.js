@@ -14,6 +14,7 @@ import carritoRoutes from "./routes/carrito.js";
 import ratingRoutes from "./routes/rating.js";
 import fs from 'fs';
 import { join } from 'path';
+import fastifyStatic from '@fastify/static';
 
 const prisma = new PrismaClient();
 
@@ -71,7 +72,7 @@ fastify.log.info("Instancia de Fastify creada.");
 
 // Configura CORS
 fastify.register(fastifyCors, {
-  origin: "http://localhost:80",
+  origin: "http://localhost",
   credentials: true,
 });
 fastify.log.info("CORS configurado para http://localhost");
@@ -88,6 +89,10 @@ fastify.decorate("authenticate", authenticate);
 fastify.log.info("Middleware de autenticación registrado.");
 
 // Registro de rutas
+fastify.register(fastifyStatic, {
+  root: join(process.cwd(), 'public'), 
+  prefix: '/', 
+});
 fastify.register(routes, { prisma });
 fastify.register(contactRoutes);
 fastify.register(userRoutes, { prisma });
@@ -121,8 +126,8 @@ fastify.log.info("Tarea CRON programada (ejecución cada 12 horas).");
 // Iniciar servidor
 const start = async () => {
   try {
-    await fastify.listen({ port: 5000, host: "0.0.0.0" });
-    fastify.log.info(`Servidor escuchando en http://backend:5000`);
+    await fastify.listen({ port: 80, host: "0.0.0.0" });
+    fastify.log.info(`Servidor escuchando en http://localhost`);
   } catch (err) {
     fastify.log.fatal(`Error al iniciar el servidor: ${err.message}`);
     process.exit(1);
