@@ -52,8 +52,8 @@ GOOGLE_CLIENT_SECRET=xxxx
 IN=production
 ```
 
-NOTA: Para hacer el despliegue debe de clonarse la rama `milestone 7`, ya que la rama `master` contiene la web en producción.
-Para ejecutar en producción, bastaría con hacer en el directorio raíz:
+NOTA: Para hacer el despliegue debe de clonarse la rama `milestone 7`, ya que la rama `master` contiene la web en desarrollo.
+Para ejecutar en desarrollo, bastaría con hacer en el directorio raíz:
 ```
 npm run dev
 node backend/src/server.js
