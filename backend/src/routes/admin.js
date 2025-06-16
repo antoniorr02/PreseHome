@@ -251,9 +251,19 @@ fastify.patch('/clientes/:id/ban', async (request, reply) => {
             where: { cliente_id: parseInt(id) }
         });
 
-        await prisma.carrito.deleteMany({
+        const carrito = await prisma.carrito.findUnique({
             where: { cliente_id: parseInt(id) }
         });
+
+        if (carrito) {
+            await prisma.itemCarrito.deleteMany({
+                where: { carrito_id: carrito.carrito_id }
+            });
+
+            await prisma.carrito.delete({
+                where: { carrito_id: carrito.carrito_id }
+            });
+        }
 
         await prisma.cliente.delete({
             where: { cliente_id: parseInt(id) }

@@ -1,20 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import jwt from 'jsonwebtoken';
-
-const url = new URL(Astro.request.url);
-const token = url.searchParams.get('token');
-
-if (!token) {
-  return Astro.redirect('/');
-}
-
-try {
-  const decoded = jwt.verify(token, import.meta.env.JWT_SECRET);
-} catch (err) {
-  console.error("Token inválido:", err.message);
-  return Astro.redirect('/');
-}
 ---
 
 <Layout>
