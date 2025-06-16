@@ -8,9 +8,30 @@ const TablaPedidos = () => {
   const [expandedPedidos, setExpandedPedidos] = useState({});
 
   useEffect(() => {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
+  
+  useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const response = await fetch('http://localhost:5000/admin/pedidos', {
+        const response = await fetch(`http://localhost/admin/pedidos`, {
           credentials: 'include',
         });
         
@@ -40,7 +61,7 @@ const TablaPedidos = () => {
 
   const handleEstadoChange = async (pedidoId, nuevoEstado) => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/pedidos/${pedidoId}/estado`, {
+      const response = await fetch(`http://localhost/admin/pedidos/${pedidoId}/estado`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -56,11 +77,9 @@ const TablaPedidos = () => {
 
       const updatedPedido = await response.json();
       
-      // Actualizar el pedido en el estado local
       setPedidos(pedidos.map(pedido => 
         pedido.pedido_id === pedidoId ? {
           ...updatedPedido,
-          // Mantener los detalles originales pero actualizar sus estados si es necesario
           detalle_pedido: pedido.detalle_pedido.map(detalle => ({
             ...detalle,
             estado: nuevoEstado === 'entregado' ? 'entregado' : 

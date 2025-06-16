@@ -1,0 +1,10 @@
+{"level":30,"time":1749882437931,"pid":41987,"hostname":"kali","msg":"Instancia de Fastify creada."}
+{"level":30,"time":1749882437932,"pid":41987,"hostname":"kali","msg":"CORS configurado para http://localhost"}
+{"level":30,"time":1749882437932,"pid":41987,"hostname":"kali","msg":"Plugin de cookies registrado."}
+{"level":30,"time":1749882437932,"pid":41987,"hostname":"kali","msg":"Middleware de autenticación registrado."}
+{"level":30,"time":1749882437933,"pid":41987,"hostname":"kali","msg":"Todas las rutas registradas."}
+{"level":30,"time":1749882437937,"pid":41987,"hostname":"kali","msg":"Tarea CRON programada (ejecución cada 12 horas)."}
+{"level":40,"time":1749882437949,"pid":41987,"hostname":"kali","msg":"\"root\" path \"/home/antonio/Documents/Tienda/dist\" must exist"}
+{"level":30,"time":1749882438006,"pid":41987,"hostname":"kali","msg":"Server listening at http://127.0.0.1:80"}
+{"level":30,"time":1749882438006,"pid":41987,"hostname":"kali","msg":"Server listening at http://192.168.1.44:80"}
+{"level":30,"time":1749882438006,"pid":41987,"hostname":"kali","msg":"Servidor escuchando en http://localhost"}

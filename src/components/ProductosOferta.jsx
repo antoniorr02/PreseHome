@@ -6,15 +6,14 @@ const Productos = () => {
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // Llamada para obtener los productos cuando el componente se monte
   useEffect(() => {
     fetchProductos();
-  }, []);  // El array vacío asegura que se ejecute solo una vez al montar el componente
+  }, []); 
 
   const fetchProductos = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/productos");
+      const response = await fetch(`http://localhost/productos`);
       const data = await response.json();
       setProductos(data);
     } catch (error) {
@@ -28,7 +27,7 @@ const Productos = () => {
     const imagenPrincipal = producto.imagenes?.find((img) => img.principal)?.url || "";
   
     try {
-      const authRes = await fetch("http://localhost:5000/rol-sesion", {
+      const authRes = await fetch(`http://localhost/rol-sesion`, {
         method: "GET",
         credentials: "include"
       });
@@ -36,7 +35,7 @@ const Productos = () => {
       const isLoggedIn = authRes.ok;
   
       if (isLoggedIn) {
-        const res = await fetch("http://localhost:5000/carrito", {
+        const res = await fetch(`http://localhost/carrito`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -81,7 +80,6 @@ const Productos = () => {
     }
   };
 
-  // Filtrar productos con descuento
   const productosConDescuento = productos.filter(
     (producto) => producto.descuento && producto.descuento > 0
   );

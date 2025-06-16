@@ -19,7 +19,7 @@ const PedidosUser = () => {
       if (activeSection === 'orders') {
         const fetchPedidos = async () => {
           try {
-              const response = await fetch('http://localhost:5000/pedidos-cliente', {
+              const response = await fetch(`http://localhost/pedidos-cliente`, {
               method: 'GET',
               credentials: 'include',
               });
@@ -49,7 +49,7 @@ const PedidosUser = () => {
           const fetchReviews = async () => {
             setLoadingReviews(true);
             try {
-              const res = await fetch('http://localhost:5000/valoraciones-usuarios', {
+              const res = await fetch(`http://localhost/valoraciones-usuarios`, {
                 method: 'GET',
                 credentials: 'include',
               });
@@ -59,10 +59,9 @@ const PedidosUser = () => {
 
                 const productoIds = [...new Set(data.valoraciones.map(r => r.producto_id))];
 
-                // Hacer peticiones en paralelo para cada producto
                 const fetchedProductos = await Promise.all(
                     productoIds.map(async (id) => {
-                    const resProd = await fetch(`http://localhost:5000/productos/${id}`);
+                    const resProd = await fetch(`http://localhost/productos/${id}`);
                     if (resProd.ok) {
                         const dataProd = await resProd.json();
                         return [id, dataProd];
@@ -71,7 +70,6 @@ const PedidosUser = () => {
                     })
                 );
 
-                // Crear un mapa producto_id => datos del producto
                 const productoMap = Object.fromEntries(fetchedProductos);
                 setProductosMap(productoMap);
               } else {
@@ -107,7 +105,7 @@ const PedidosUser = () => {
 
     const handleDeleteReview = async (reviewId) => {      
         try {
-          const response = await fetch(`http://localhost:5000/review/${reviewId}`, {
+          const response = await fetch(`http://localhost/review/${reviewId}`, {
             method: 'DELETE',
             credentials: 'include',
           });
@@ -122,10 +120,9 @@ const PedidosUser = () => {
         }
     };
       
-    // Cancelar pedido completo (solo si está pendiente)
     const handleCancelarPedido = async (pedidoId) => {
       try {
-          const response = await fetch(`http://localhost:5000/pedidos/${pedidoId}/cancelar`, {
+          const response = await fetch(`http://localhost/pedidos/${pedidoId}/cancelar`, {
               method: 'PUT',
               credentials: 'include',
           });
@@ -142,10 +139,9 @@ const PedidosUser = () => {
       }
     };
 
-    // Devolver producto individual
     const handleDevolverProducto = async (pedidoId, productoId) => {
       try {
-          const response = await fetch(`http://localhost:5000/pedidos/${pedidoId}/productos/${productoId}/devolver`, {
+          const response = await fetch(`http://localhost/pedidos/${pedidoId}/productos/${productoId}/devolver`, {
               method: 'PUT',
               credentials: 'include',
           });
@@ -153,7 +149,6 @@ const PedidosUser = () => {
           const data = await response.json();
 
           if (response.ok) {
-              // Actualizar el estado del producto en el pedido
               setPedidos(pedidos.map(pedido => 
                   pedido.pedido_id === pedidoId
                       ? {
@@ -167,7 +162,6 @@ const PedidosUser = () => {
                       : pedido
               ));
               
-              // Mostrar alerta con el mensaje del backend
               alert(data.mensaje);
           } else {
               alert(data.error || 'Error al solicitar devolución');
@@ -178,9 +172,8 @@ const PedidosUser = () => {
       }
     };
 
-    // Función para verificar si ha pasado el límite de 15 días desde la recepción
     const puedeDevolver = (fechaRecepcion) => {
-      if (!fechaRecepcion) return false; // Si no hay fecha de recepción, no se puede devolver
+      if (!fechaRecepcion) return false; 
       
       const fechaRecepcionDate = new Date(fechaRecepcion);
       const hoy = new Date();
@@ -228,7 +221,6 @@ const PedidosUser = () => {
                                 {pedido.estado}
                               </span>
                             </div>
-                            {/* Botón de cancelar debajo del estado, pero alineado a la derecha */}
                             {pedido.estado === 'pendiente' && (
                               <button 
                                 onClick={() => handleCancelarPedido(pedido.pedido_id)}
@@ -250,7 +242,6 @@ const PedidosUser = () => {
 
                           return (
                             <div key={`${pedido.pedido_id}-${detalle.producto_id}`} className="flex items-start mb-4">
-                              {/* Imagen */}
                               {detalle.producto?.imagenes?.[0]?.url && (
                                 <img
                                   src={detalle.producto.imagenes[0].url}
@@ -259,12 +250,10 @@ const PedidosUser = () => {
                                 />
                               )}
 
-                              {/* Info producto */}
                               <div className="flex-1">
                                 <h4 className="text-md font-semibold text-gray-900">{detalle.producto.nombre}</h4>
                                 <p className="text-sm text-gray-700">Cantidad: {detalle.cantidad}</p>
                                 
-                                {/* Mostrar precio con descuento si aplica */}
                                 {detalle.descuento_aplicado > 0 ? (
                                   <>
                                     <p className="text-sm text-gray-500 line-through">
@@ -280,7 +269,6 @@ const PedidosUser = () => {
                                   </p>
                                 )}
                                 
-                                {/* Estado del producto */}
                                 <p className="text-sm">
                                   Estado: 
                                   <span className={`ml-2 ${
@@ -296,7 +284,6 @@ const PedidosUser = () => {
                                 </p>
                               </div>
 
-                              {/* Acciones - Solo botones de devolución por producto */}
                               <div className="flex flex-col space-y-2 min-w-[120px]">
                                 {detalle.estado === 'entregado' && (
                                   <button
@@ -309,7 +296,6 @@ const PedidosUser = () => {
                                     Valorar producto
                                   </button>
                                 )}
-                                {/* Botón para devolver producto individual */}
                                 {puedeDevolverPedido && 
                                 (detalle.estado === 'entregado') && (
                                   <button
@@ -367,7 +353,6 @@ const PedidosUser = () => {
                                 <li key={index} className="border border-gray-200 rounded-xl shadow-sm p-5 bg-white bg-opacity-40">
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center sm:space-x-6 space-y-4 sm:space-y-0">
                                     
-                                    {/* Columna 1: Imagen */}
                                     {producto?.imagenes?.[0]?.url && (
                                         <img
                                         src={producto.imagenes[0].url}
@@ -376,7 +361,6 @@ const PedidosUser = () => {
                                         />
                                     )}
 
-                                    {/* Columna 2: Información de la reseña */}
                                     <div className="flex-1">
                                         <h3 className="text-lg font-semibold text-gray-800 mb-1">
                                         {producto ? producto.nombre : 'Producto no disponible'}
@@ -389,7 +373,6 @@ const PedidosUser = () => {
                                         </p>
                                     </div>
 
-                                    {/* Columna 3: Botones */}
                                     <div className="flex flex-col space-y-2">
                                         <button
                                         className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded"
@@ -475,7 +458,6 @@ const PedidosUser = () => {
                                   
                                   return (
                                     <div key={`${pedido.pedido_id}-${detalle.producto_id}`} className="flex items-start mb-4">
-                                      {/* Imagen */}
                                       {detalle.producto?.imagenes?.[0]?.url && (
                                         <img
                                           src={detalle.producto.imagenes[0].url}
@@ -484,7 +466,6 @@ const PedidosUser = () => {
                                         />
                                       )}
         
-                                      {/* Info producto */}
                                       <div className="flex-1">
                                         <h4 className="text-md font-semibold text-gray-900">{detalle.producto.nombre}</h4>
                                         <p className="text-sm text-gray-700">Cantidad: {detalle.cantidad}</p>
@@ -492,7 +473,6 @@ const PedidosUser = () => {
                                           Precio unitario: {precioUnitario}€
                                         </p>
                                         
-                                        {/* Estado del producto */}
                                         <p className="text-sm">
                                           Estado: 
                                           <span className={`ml-2 ${
@@ -504,7 +484,6 @@ const PedidosUser = () => {
                                         </p>
                                       </div>
         
-                                      {/* Acciones */}
                                       <div className="flex flex-col space-y-2 min-w-[120px]">
                                         {detalle.estado === 'devolución' && (
                                           <span className="text-sm text-gray-500">Devolución en proceso</span>

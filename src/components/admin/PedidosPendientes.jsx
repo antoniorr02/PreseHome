@@ -8,9 +8,30 @@ const PedidosPendientes = () => {
   const [expandedRows, setExpandedRows] = useState({});
 
   useEffect(() => {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
+  
+  useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const response = await fetch('http://localhost:5000/admin/pedidos?estado=pendiente', {
+        const response = await fetch(`http://localhost/admin/pedidos?estado=pendiente`, {
           credentials: 'include',
         });
         
@@ -41,7 +62,7 @@ const PedidosPendientes = () => {
 
   const handleEstadoChange = async (pedidoId, nuevoEstado) => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/pedidos/${pedidoId}/estado`, {
+      const response = await fetch(`http://localhost/admin/pedidos/${pedidoId}/estado`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -55,12 +76,10 @@ const PedidosPendientes = () => {
         throw new Error(errorData.error || 'Error al actualizar el estado del pedido');
       }
 
-      // Actualizar el estado localmente
       setPedidos(pedidos.map(pedido => 
         pedido.pedido_id === pedidoId ? { ...pedido, estado: nuevoEstado } : pedido
       ));
       
-      // Si el estado es "enviado" o "cancelado", quitarlo de la lista
       if (nuevoEstado === 'enviado' || nuevoEstado === 'cancelado') {
         setPedidos(pedidos.filter(pedido => pedido.pedido_id !== pedidoId));
       }

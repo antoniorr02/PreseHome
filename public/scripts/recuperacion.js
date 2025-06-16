@@ -3,17 +3,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const errorMessage = document.getElementById("error-message");
 
     form.addEventListener("submit", async (event) => {
-        event.preventDefault();  // Prevenir el comportamiento predeterminado de redirección
+        event.preventDefault();
 
-        // Verifica que se esté ejecutando este código
         console.log("Formulario enviado");
         
         const formData = new FormData(form);
         const email = formData.get("email");
 
         try {
-            console.log("Enviando correo para recuperar contraseña:", email); // Verifica el correo enviado
-            const response = await fetch('http://localhost:5000/recuperar', {
+            console.log("Enviando correo para recuperar contraseña:", email);
+            const response = await fetch(`http://localhost/recuperar`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

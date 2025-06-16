@@ -8,9 +8,30 @@ const TablaDevoluciones = () => {
   const [activeFilter, setActiveFilter] = useState('solicitada');
 
   useEffect(() => {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
+  
+  useEffect(() => {
     const fetchPedidosConDevoluciones = async () => {
       try {
-        const response = await fetch('http://localhost:5000/admin/devoluciones', {
+        const response = await fetch(`http://localhost/admin/devoluciones`, {
           credentials: 'include',
         });
         
@@ -48,7 +69,7 @@ const TablaDevoluciones = () => {
   const handleEstadoDevolucion = async (pedidoId, productoId, nuevoEstado) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/admin/devoluciones/${pedidoId}/producto/${productoId}`,
+        `http://localhost/admin/devoluciones/${pedidoId}/producto/${productoId}`,
         {
           method: 'PUT',
           headers: {
@@ -64,7 +85,6 @@ const TablaDevoluciones = () => {
         throw new Error(errorData.error || 'Error al actualizar la devolución');
       }
 
-      // Actualizar el estado local
       setPedidos(pedidos.map(pedido => {
         if (pedido.pedido_id === pedidoId) {
           return {

@@ -12,6 +12,27 @@ const GestionCategorias = () => {
     nombre: '',
     url_imagen: ''
   });
+  
+  useEffect(() => {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
 
   useEffect(() => {
     fetchCategorias();
@@ -20,7 +41,7 @@ const GestionCategorias = () => {
   const fetchCategorias = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/categorias', {
+      const response = await fetch(`http://localhost/categorias`, {
         credentials: 'include',
       });
       
@@ -75,12 +96,11 @@ const GestionCategorias = () => {
     
     try {
       const url = categoriaEditando 
-        ? `http://localhost:5000/categorias/${categoriaEditando.categoria_id}`
-        : 'http://localhost:5000/categorias';
+        ? `http://localhost/categorias/${categoriaEditando.categoria_id}`
+        : 'http://localhost/categorias';
       
       const method = categoriaEditando ? 'PUT' : 'POST';
   
-      // Añadimos loading state para el botón
       setLoading(true);
 
       const response = await fetch(url, {
@@ -103,7 +123,7 @@ const GestionCategorias = () => {
   
       toast.success(`Categoría ${categoriaEditando ? 'actualizada' : 'creada'} correctamente`);
       setModalAbierto(false);
-      await fetchCategorias(); // Esperamos a que termine la recarga
+      await fetchCategorias();
     } catch (error) {
       console.error('Error:', error);
       toast.error(error.message || `Error al ${categoriaEditando ? 'actualizar' : 'crear'} la categoría`);
@@ -121,7 +141,7 @@ const GestionCategorias = () => {
           label: 'Sí, eliminar',
           onClick: async () => {
             try {
-              const response = await fetch(`http://localhost:5000/categorias/${categoriaId}`, {
+              const response = await fetch(`http://localhost/categorias/${categoriaId}`, {
                 method: 'DELETE',
                 credentials: 'include',
               });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const ConfirmarData = () => {
   const [cliente, setCliente] = useState(null);
@@ -11,7 +11,7 @@ const ConfirmarData = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/datos-cliente", {
+        const res = await fetch("http://localhost/datos-cliente", {
           method: 'GET',
           credentials: "include",
         });
@@ -21,7 +21,17 @@ const ConfirmarData = () => {
         setCliente({ ...data });
 
         if (data.direcciones.length > 0) {
-          setDireccionSeleccionada({ ...data.direcciones[0] });
+            setDireccionSeleccionada({ ...data.direcciones[0] });
+        } else {
+            setDireccionSeleccionada({
+              calle: "",
+              numero: null,
+              piso: null,
+              ciudad: "",
+              cod_postal: "",
+              pais: "",
+              cliente_id: data.cliente_id
+            });
         }
 
         if (data.tarjetas.length > 0) {
@@ -83,7 +93,7 @@ const ConfirmarData = () => {
 
   const handleDireccionEdit = async (e) => {
     const { name, value } = e.target;
-    setDireccionSeleccionada((prev) => ({ ...prev, [name]: value }));
+    setDireccionSeleccionada((prev) => ({ ...prev, [name]: name === 'numero' ? parseInt(value) || null : value }));
   };
 
   const handleTarjetaEdit = async (e) => {
@@ -94,7 +104,7 @@ const ConfirmarData = () => {
   const handleNuevaTarjeta = () => {
     const nueva = {
       tarjeta_id: null,
-      numero: "",
+      numero: null,
       titular: "",
       vencimiento: "",
       cvv: "",
@@ -105,10 +115,9 @@ const ConfirmarData = () => {
 
   const handleNuevaDireccion = () => {
     const nueva = {
-      direccion_id: null,
       calle: "",
-      numero: "",
-      piso: "",
+      numero: null,
+      piso: null,
       ciudad: "",
       cod_postal: "",
       pais: "",
@@ -120,26 +129,48 @@ const ConfirmarData = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if(intentoEnvio) return;
     setIntentoEnvio(true);
     
     if (!validarCampos()) {
+      setIntentoEnvio(false);
       return;
     }
 
     try {
-      const metodoDireccion = direccionSeleccionada.direccion_id ? "PUT" : "POST";
-      const endpointDireccion = direccionSeleccionada.direccion_id
-        ? `http://localhost:5000/direccion/${direccionSeleccionada.direccion_id}`
-        : `http://localhost:5000/direccion`;
+      const direccionData = {
+        calle: direccionSeleccionada.calle,
+        numero: direccionSeleccionada.numero ? parseInt(direccionSeleccionada.numero) : null,
+        piso: direccionSeleccionada.piso,
+        ciudad: direccionSeleccionada.ciudad,
+        cod_postal: direccionSeleccionada.cod_postal,
+        pais: direccionSeleccionada.pais,
+      };
 
-      const resDireccion = await fetch(endpointDireccion, {
-        method: metodoDireccion,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(direccionSeleccionada),
-      });
+      const numero = direccionData.numero ? parseInt(direccionData.numero) : null;
+      let resDireccion;
+      if (direccionSeleccionada.direccion_id) {
+        // Actualizar dirección existente
+        resDireccion = await fetch(`http://localhost/direccion/${direccionSeleccionada.direccion_id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({...direccionData, numero}),
+        });
+      } else {
+        // Crear nueva dirección
+        resDireccion = await fetch(`http://localhost/direccion/${cliente.cliente_id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({...direccionData, numero}),
+        });
+      }
 
-      if (!resDireccion.ok) throw new Error("Error al guardar la dirección");
+      if (!resDireccion.ok) {
+        const errorData = await resDireccion.json();
+        throw new Error(errorData.error || "Error al guardar la dirección");
+      }
 
       const datosCliente = {
         nombre: cliente.nombre,
@@ -148,7 +179,7 @@ const ConfirmarData = () => {
         email: cliente.email,
       };
 
-      const resCliente = await fetch(`http://localhost:5000/clientes/${cliente.cliente_id}`, {
+      const resCliente = await fetch(`http://localhost/clientes/${cliente.cliente_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -160,8 +191,8 @@ const ConfirmarData = () => {
       if (tarjetaSeleccionada) {
         const metodo = tarjetaSeleccionada.tarjeta_id ? "PUT" : "POST";
         const endpoint = tarjetaSeleccionada.tarjeta_id
-          ? `http://localhost:5000/tarjeta/${tarjetaSeleccionada.tarjeta_id}`
-          : `http://localhost:5000/tarjeta`;
+          ? `http://localhost/tarjeta/${tarjetaSeleccionada.tarjeta_id}`
+          : `http://localhost/tarjeta`;
 
         const resTarjeta = await fetch(endpoint, {
           method: metodo,
@@ -178,7 +209,7 @@ const ConfirmarData = () => {
       }
 
       // Confirmar pedido y generar factura
-      const resPedido = await fetch(`http://localhost:5000/confirmar-pago`, {
+      const resPedido = await fetch(`http://localhost/confirmar-pago`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -213,7 +244,7 @@ const ConfirmarData = () => {
       >
         {cliente.direcciones.map((dir) => (
           <option key={dir.direccion_id} value={dir.direccion_id}>
-            {dir.calle}, {dir.numero || ""} {dir.piso || ""}, {dir.ciudad}
+            {dir.calle}, {dir.numero || null} {dir.piso || null}, {dir.ciudad}
           </option>
         ))}
       </select>
@@ -234,11 +265,11 @@ const ConfirmarData = () => {
         
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Número</label>
+            <label className="block text-sm font-medium text-gray-700">Número*</label>
             <input 
               type="text" 
               name="numero" 
-              value={direccionSeleccionada.numero || ""} 
+              value={direccionSeleccionada.numero || null} 
               onChange={handleDireccionEdit} 
               className="w-full p-2 border border-gray-300 rounded-lg" 
             />
@@ -248,7 +279,7 @@ const ConfirmarData = () => {
             <input 
               type="text" 
               name="piso" 
-              value={direccionSeleccionada.piso || ""} 
+              value={direccionSeleccionada.piso || null} 
               onChange={handleDireccionEdit} 
               className="w-full p-2 border border-gray-300 rounded-lg" 
             />
@@ -462,7 +493,7 @@ const ConfirmarData = () => {
           type="submit" 
           className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700"
         >
-          Confirmar y pagar
+            {intentoEnvio ? 'Procesando...' : 'Confirmar compra'}
         </button>
       </div>
     </form>

@@ -22,7 +22,7 @@ export default function CartSidebar() {
 
   const updateCart = async () => {
     try {
-      const response = await fetch("http://localhost:5000/rol-sesion", {
+      const response = await fetch(`http://localhost/rol-sesion`, {
         method: "GET",
         credentials: "include",
       });
@@ -31,7 +31,7 @@ export default function CartSidebar() {
         const { rol } = await response.json();
         setIsLoggedIn(true);
         if (rol === "Cliente" || rol === "Admin") {
-          const carritoRes = await fetch("http://localhost:5000/carrito", {
+          const carritoRes = await fetch(`http://localhost/carrito`, {
             method: "GET",
             credentials: "include",
           });
@@ -63,12 +63,12 @@ export default function CartSidebar() {
   
   const handleRemoveItem = async (producto_id) => {
     try {
-      const sesionRes = await fetch("http://localhost:5000/rol-sesion", {
+      const sesionRes = await fetch(`http://localhost/rol-sesion`, {
         credentials: "include"
       });
   
       if (sesionRes.ok) {
-        const deleteRes = await fetch(`http://localhost:5000/carrito/${producto_id}`, {
+        const deleteRes = await fetch(`http://localhost/carrito/${producto_id}`, {
           method: "DELETE",
           credentials: "include",
         });
@@ -92,7 +92,7 @@ export default function CartSidebar() {
 
   const updateItemQuantity = async (id, delta) => {
     try {
-      const authRes = await fetch("http://localhost:5000/rol-sesion", {
+      const authRes = await fetch(`http://localhost/rol-sesion`, {
         method: "GET",
         credentials: "include"
       });
@@ -100,7 +100,7 @@ export default function CartSidebar() {
       const isLoggedIn = authRes.ok;
   
       if (isLoggedIn) {
-        const res = await fetch(`http://localhost:5000/carrito/${id}`, {
+        const res = await fetch(`http://localhost/carrito/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json"

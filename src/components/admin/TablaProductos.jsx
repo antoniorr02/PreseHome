@@ -42,7 +42,6 @@ const TablaProductos = () => {
 
   const openModal = (producto = null) => {
     if (producto) {
-      // Editar producto
       setIsEditMode(true);
       setProductoEnEdicion(producto);
       setNewProduct({
@@ -60,7 +59,6 @@ const TablaProductos = () => {
       });
       setSelectedCategories(producto.categorias.map(c => c.categoria.categoria_id));
     } else {
-      // Añadir producto
       setIsEditMode(false);
       setProductoEnEdicion(null);
       setNewProduct({
@@ -80,10 +78,8 @@ const TablaProductos = () => {
   };
   
 
-  // Función para cerrar el modal (CORREGIDA)
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
-    // Resetear el formulario
     setNewProduct({
       nombre: '',
       marca: '',
@@ -97,7 +93,6 @@ const TablaProductos = () => {
     setSelectedCategories([]);
   }, []);
 
-  // Manejar cambios en el formulario
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewProduct(prev => ({
@@ -106,7 +101,6 @@ const TablaProductos = () => {
     }));
   };
 
-  // Manejar cambios en las imágenes
   const handleImageChange = (index, field, value) => {
     const updatedImages = [...newProduct.imagenes];
     updatedImages[index] = {
@@ -119,7 +113,6 @@ const TablaProductos = () => {
     }));
   };
 
-  // Añadir nueva imagen
   const addImageField = () => {
     setNewProduct(prev => ({
       ...prev,
@@ -127,10 +120,8 @@ const TablaProductos = () => {
     }));
   };
 
-  // Eliminar imagen
   const removeImageField = (index) => {
     const updatedImages = newProduct.imagenes.filter((_, i) => i !== index);
-    // Asegurarse de que al menos una imagen sea principal
     if (updatedImages.length > 0 && !updatedImages.some(img => img.principal)) {
       updatedImages[0].principal = true;
     }
@@ -140,7 +131,6 @@ const TablaProductos = () => {
     }));
   };
 
-  // Manejar selección de categorías
   const handleCategoryChange = (e) => {
     const { value, checked } = e.target;
     if (checked) {
@@ -155,8 +145,8 @@ const TablaProductos = () => {
   
     const method = isEditMode ? 'PUT' : 'POST';
     const endpoint = isEditMode 
-      ? `http://localhost:5000/admin/productos/${productoEnEdicion.producto_id}` 
-      : 'http://localhost:5000/admin/productos';
+      ? `http://localhost/admin/productos/${productoEnEdicion.producto_id}` 
+      : 'http://localhost/admin/productos';
   
     try {
       if (!newProduct.nombre || !newProduct.marca || !newProduct.precio || !newProduct.stock) {
@@ -200,6 +190,27 @@ const TablaProductos = () => {
   };  
 
   useEffect(() => {
+    fetch('http://localhost/rol-sesion', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) {
+          window.location.href = '/';
+          throw new Error('No autorizado');
+        }
+        return res.json();
+      })
+      .then(({ rol }) => {
+        if (rol !== 'Admin') {
+          window.location.href = '/';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  }, []);
+  
+  useEffect(() => {
     fetchProductos();
     fetchCategories();
   }, [filters, pagination.page, pagination.limit, sortConfig]);
@@ -218,7 +229,7 @@ const TablaProductos = () => {
         sortOrder: sortConfig.direction
       }).toString();
 
-      const response = await fetch(`http://localhost:5000/admin/productos?${queryParams}`, {
+      const response = await fetch(`http://localhost/admin/productos?${queryParams}`, {
         credentials: 'include',
       });
       
@@ -243,7 +254,7 @@ const TablaProductos = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:5000/categorias', {
+      const response = await fetch(`http://localhost/categorias`, {
         credentials: 'include',
       });
       
@@ -273,7 +284,7 @@ const TablaProductos = () => {
           label: 'Sí, eliminar',
           onClick: async () => {
             try {
-              const response = await fetch(`http://localhost:5000/admin/productos/${productoId}`, {
+              const response = await fetch(`http://localhost/admin/productos/${productoId}`, {
                 method: 'DELETE',
                 credentials: 'include',
               });
@@ -335,7 +346,6 @@ const TablaProductos = () => {
         </button>
       </div>
 
-      {/* Modal para agregar nuevo producto */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -693,7 +703,6 @@ const TablaProductos = () => {
         </table>
       </div>
 
-      {/* Paginación */}
       {pagination.totalPages > 1 && (
         <div className="flex justify-between items-center mt-4">
           <div>

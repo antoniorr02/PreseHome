@@ -38,17 +38,14 @@ export default async function userRoutes(fastify, options) {
 
     fastify.get('/datos-cliente', { preHandler: [authenticate] }, async (request, reply) => {
         try {
-          // Verificar el token en las cookies
-          const token = request.cookies.token; // El token debería estar en las cookies
+          const token = request.cookies.token;
           if (!token) {
             return reply.status(401).send({ error: 'No autorizado' });
           }
       
-          // Verificar y decodificar el token
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
           const email = decoded.email;
       
-          // Buscar el cliente en la base de datos
           const cliente = await prisma.cliente.findUnique({
             where: { email },
             include: {
@@ -61,7 +58,6 @@ export default async function userRoutes(fastify, options) {
             return reply.status(404).send({ error: 'Cliente no encontrado' });
           }
       
-          // Responder con los datos del cliente
           return reply.send({
             cliente_id: cliente.cliente_id,
             nombre: cliente.nombre,
@@ -127,7 +123,6 @@ export default async function userRoutes(fastify, options) {
         const data = request.body;
       
         try {
-          // Verificar si el cliente existe
           const clienteExistente = await prisma.cliente.findUnique({
             where: { cliente_id: parseInt(cliente_id) }
           });
@@ -136,7 +131,6 @@ export default async function userRoutes(fastify, options) {
             return reply.status(404).send({ error: 'Cliente no encontrado' });
           }
       
-          // Crear una nueva dirección asociada al cliente
           const nuevaDireccion = await prisma.direccion.create({
             data: {
               cliente_id: parseInt(cliente_id),
@@ -160,7 +154,6 @@ export default async function userRoutes(fastify, options) {
         const data = request.body;
       
         try {
-          // Verificar si la dirección existe
           const direccionExistente = await prisma.direccion.findUnique({
             where: { direccion_id: parseInt(direccion_id) }
           });
@@ -169,7 +162,6 @@ export default async function userRoutes(fastify, options) {
             return reply.status(404).send({ error: 'Dirección no encontrada' });
           }
       
-          // Actualizar la dirección
           const direccionActualizada = await prisma.direccion.update({
             where: { direccion_id: parseInt(direccion_id) },
             data: {
@@ -281,7 +273,7 @@ export default async function userRoutes(fastify, options) {
       });
 
       fastify.post('/confirmar-pago', { preHandler: [authenticate] }, async (request, reply) => {
-        const direccionData = request.body; // Cambiado de 'direccion' a 'direccionData' para mayor claridad
+        const direccionData = request.body;
         try {
             const token = request.cookies.token;
             if (!token) {
@@ -310,16 +302,13 @@ export default async function userRoutes(fastify, options) {
                 return reply.status(400).send({ error: 'Carrito vacío o cliente no encontrado' });
             }
     
-            // Primero, verificar/crear la dirección
             let direccion;
             if (direccionData.direccion_id) {
-                // Actualizar dirección existente
                 direccion = await prisma.direccion.update({
                     where: { direccion_id: direccionData.direccion_id },
                     data: direccionData
                 });
             } else {
-                // Crear nueva dirección
                 direccion = await prisma.direccion.create({
                     data: {
                         ...direccionData,
@@ -376,11 +365,14 @@ export default async function userRoutes(fastify, options) {
                 total: total,
             });
     
+            console.log('Borrando items del carrito...');
             await prisma.itemCarrito.deleteMany({
-                where: {
-                    carrito_id: cliente.carrito.carrito_id
-                }
+              where: {
+                carrito_id: cliente.carrito.carrito_id
+              }
             });
+            console.log('Items del carrito eliminados');
+
     
             return reply.send({ mensaje: 'Pedido confirmado y factura enviada.', pedido: nuevoPedido });
         } catch (error) {
@@ -432,7 +424,6 @@ export default async function userRoutes(fastify, options) {
                 }
             });       
             
-            // Calcular precios con descuento para cada detalle
             const pedidosConDescuentos = pedidos.map(pedido => {
               const detallesConDescuento = pedido.detalle_pedido.map(detalle => {
                   const precioOriginal = parseFloat(detalle.precio_unitario);
@@ -468,7 +459,6 @@ export default async function userRoutes(fastify, options) {
           const token = request.cookies.token;
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
           
-          // Verificar que el pedido pertenece al cliente
           const pedido = await prisma.pedido.findUnique({
               where: { pedido_id: parseInt(pedidoId) },
               include: { cliente: true }
@@ -478,12 +468,10 @@ export default async function userRoutes(fastify, options) {
               return reply.status(404).send({ error: 'Pedido no encontrado o no autorizado' });
           }
   
-          // Solo se puede cancelar si está pendiente
           if (pedido.estado !== 'pendiente') {
               return reply.status(400).send({ error: 'Solo se pueden cancelar pedidos pendientes' });
           }
   
-          // Actualizar el estado del pedido y sus detalles
           const updatedPedido = await prisma.pedido.update({
               where: { pedido_id: parseInt(pedidoId) },
               data: {
@@ -513,7 +501,6 @@ export default async function userRoutes(fastify, options) {
         const token = request.cookies.token;
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        // Verificar que el pedido pertenece al cliente
         const pedido = await prisma.pedido.findUnique({
             where: { pedido_id: parseInt(pedidoId) },
             include: {
@@ -529,19 +516,16 @@ export default async function userRoutes(fastify, options) {
             return reply.status(404).send({ error: 'Pedido no encontrado o no autorizado' });
         }
 
-        // Verificar que el producto existe en el pedido
         if (pedido.detalle_pedido.length === 0) {
             return reply.status(404).send({ error: 'Producto no encontrado en el pedido' });
         }
 
         const detalle = pedido.detalle_pedido[0];
         
-        // Solo se puede devolver si está entregado y no ha pasado el plazo
         if (detalle.estado !== 'entregado') {
             return reply.status(400).send({ error: 'Solo se pueden devolver productos entregados' });
         }
 
-        // Verificar plazo de devolución (15 días desde fecha_recepcion)
         if (pedido.fecha_recepcion) {
             const fechaRecepcion = new Date(pedido.fecha_recepcion);
             const hoy = new Date();
@@ -554,7 +538,6 @@ export default async function userRoutes(fastify, options) {
             return reply.status(400).send({ error: 'El pedido no ha sido marcado como recibido' });
         }
 
-        // Actualizar el estado del producto en el pedido
         const updatedDetalle = await prisma.detallePedido.update({
             where: {
                 pedido_id_producto_id: {
@@ -565,7 +548,6 @@ export default async function userRoutes(fastify, options) {
             data: { estado: 'solicitada' }
         });
 
-        // Enviar correo electrónico con instrucciones de devolución
         await enviarCorreoDevolucion(
             pedido.cliente.email,
             {

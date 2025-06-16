@@ -12,13 +12,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = formData.get("password");
     const confirmPassword = formData.get("confirmPassword");
 
-    // Validar que las contraseñas coinciden
     if (password !== confirmPassword) {
       showError("Las contraseñas no coinciden");
       return;
     }
 
-    // Validar seguridad de la contraseña
     const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>/?]).{8,}$/;
     if (!passwordRegex.test(password)) {
       showError("La contraseña debe tener al menos 8 caracteres, un número y un carácter especial");
@@ -26,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/clientes", {
+      const response = await fetch(`http://localhost/clientes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nombre, apellidos, email, password }),

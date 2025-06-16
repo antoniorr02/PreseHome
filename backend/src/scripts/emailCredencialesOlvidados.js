@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function emailCredencialesOlvidados(destinatario, token) {
-    const urlRecuperacion = `http://localhost:4321/cambiar-credenciales?token=${token}`;
+    const urlRecuperacion = `http://localhost/cambiar-credenciales?token=${token}`;
 
     const mailOptions = {
         from: `"PreseHome" <${process.env.EMAIL_USER}>`,

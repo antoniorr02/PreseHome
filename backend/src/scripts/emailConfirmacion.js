@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function enviarCorreoConfirmacion(destinatario, token) {
-    const urlConfirmacion = `http://localhost:4321/confirmado?token=${token}`;
+    const urlConfirmacion = `http://localhost/confirmado?token=${token}`;
 
     const mailOptions = {
         from: `"PreseHome" <${process.env.EMAIL_USER}>`,

@@ -15,7 +15,7 @@ export default async function (fastify, opts) {
       auth: fastifyOAuth2.GOOGLE_CONFIGURATION
     },
     startRedirectPath: '/auth/google',
-    callbackUri: 'http://localhost:5000/auth/google/callback',
+    callbackUri: 'http://localhost/auth/google/callback',
     scope: ['profile', 'email']
   });
 
@@ -35,6 +35,7 @@ export default async function (fastify, opts) {
     }).then(res => res.json());
 
     const { email, given_name: nombre, family_name: apellidos } = userInfo;
+    const apellidosSeguro = apellidos || ''
 
     if (!email) {
         return reply.code(400).send({ error: "No se pudo obtener el email del usuario de Google." });
@@ -46,7 +47,10 @@ export default async function (fastify, opts) {
 
     if (user) {
         if (!user.confirmado) {
-            return reply.status(401).send({ error: 'Usuario no verificado' });
+            await prisma.cliente.update({
+                where: { email },
+                data: { confirmado: true }
+            });
         }
 
         if (user.baneado) {
@@ -60,7 +64,7 @@ export default async function (fastify, opts) {
         const nuevoCliente = await prisma.cliente.create({
             data: {
                 nombre,
-                apellidos,
+                apellidos: apellidosSeguro,
                 email,
                 password: hashedPassword,
                 confirmado: true,
@@ -93,7 +97,7 @@ export default async function (fastify, opts) {
         maxAge: 2 * 60 * 60,
     });
 
-    reply.redirect('http://localhost:4321');
+    reply.redirect('http://localhost');
   });
 
   fastify.get('/profile', async (req, reply) => {

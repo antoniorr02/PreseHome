@@ -6,14 +6,14 @@ export default function CompraDetails() {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const res = await fetch("http://localhost:5000/rol-sesion", {
+        const res = await fetch(`http://localhost/rol-sesion`, {
           credentials: "include",
         });
 
         if (res.ok) {
           const { rol } = await res.json();
           if (["Cliente", "Admin"].includes(rol)) {
-            const carritoRes = await fetch("http://localhost:5000/carrito", {
+            const carritoRes = await fetch(`http://localhost/carrito`, {
               credentials: "include",
             });
             const data = await carritoRes.json();

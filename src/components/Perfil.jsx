@@ -17,7 +17,7 @@ const UserProfile = () => {
 
   const handleUpdate = async (updatedData) => {
     try {
-      const res = await fetch(`http://localhost:5000/clientes/${updatedData.cliente_id}`, {
+      const res = await fetch(`http://localhost/clientes/${updatedData.cliente_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -52,7 +52,7 @@ const UserProfile = () => {
   const handleNuevaDireccion = async (updatedData) => {
     try {
       const numero = updatedData.numero ? parseInt(updatedData.numero) : null;
-      const res = await fetch(`http://localhost:5000/direccion/${updatedData.cliente_id}`, {
+      const res = await fetch(`http://localhost/direccion/${updatedData.cliente_id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -79,7 +79,7 @@ const UserProfile = () => {
 
   const handleEliminarDireccion = async (direccionId) => {
     try {
-      const res = await fetch(`http://localhost:5000/direccion/${direccionId}`, {
+      const res = await fetch(`http://localhost/direccion/${direccionId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -102,9 +102,9 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch('http://localhost:5000/datos-cliente', {
+        const response = await fetch(`http://localhost/datos-cliente`, {
           method: 'GET',
-          credentials: 'include', // Mando las cookies
+          credentials: 'include', 
         });
         if (response.status === 401) {
           window.location.href = '/';
@@ -209,7 +209,7 @@ const UserProfile = () => {
           <div className="border border-gray-400 p-4 rounded-lg">
             <h2 className="font-semibold">Métodos de pago</h2>
             <p className="text-gray-700">Aquí podrás añadir o editar tus métodos de pago.</p>
-            {/* Aquí iría el formulario para añadir o editar métodos de pago */}
+            {/* Aquí iría el formulario para añadir o editar métodos de pago (producción) */}
           </div>
         );
       default:
@@ -243,7 +243,6 @@ const UserProfile = () => {
         </button>
       </div>
 
-      {/* Aquí se renderiza la sección activa */}
       {renderSection()}
     </div>
   );
